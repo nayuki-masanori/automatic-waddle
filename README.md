@@ -7,6 +7,10 @@ Python + FastAPI で実装。
 遷移条件 (`condition`) を入力やそれまでの実行結果 (context) に基づいて
 評価しながら、次に進むノードを動的に決定して実行します。
 
+ワークフロー定義と実行結果は **SQLite に永続化**され、サーバーを再起動しても
+残ります。さらに **Obsidian (Markdown vault) と双方向に連携**でき、実行結果を
+ノートとして書き出したり、vault のノートからワークフロー定義を取り込めます。
+
 ## セットアップ
 
 ```bash
@@ -21,17 +25,56 @@ uvicorn app.main:app --reload
 
 起動後、API ドキュメント (Swagger UI) は http://127.0.0.1:8000/docs で確認できます。
 
+### 設定 (環境変数)
+
+| 環境変数 | 説明 | デフォルト |
+|----------|------|-----------|
+| `AW_DB_PATH` | SQLite データベースのパス | `automatic_waddle.db` |
+| `AW_VAULT_PATH` | Obsidian vault のパス（未設定なら Obsidian 連携は無効） | （なし） |
+
+```bash
+AW_DB_PATH=./data/aw.db AW_VAULT_PATH=~/ObsidianVault uvicorn app.main:app --reload
+```
+
 ## API
 
 | メソッド | パス | 説明 |
 |----------|------|------|
 | GET    | `/health` | ヘルスチェック |
-| POST   | `/workflows` | ワークフロー登録 |
+| POST   | `/workflows` | ワークフロー登録（永続化） |
 | GET    | `/workflows` | 登録済み一覧 |
 | GET    | `/workflows/{name}` | 定義取得 |
 | DELETE | `/workflows/{name}` | 削除 |
-| POST   | `/workflows/{name}/run` | 入力を与えて実行 |
+| POST   | `/workflows/{name}/run` | 入力を与えて実行（結果を永続化） |
 | POST   | `/run` | 定義と入力を渡して即時実行 |
+| GET    | `/runs` | 実行履歴一覧（`?workflow=名前` で絞り込み） |
+| GET    | `/runs/{run_id}` | 実行結果（trace 付き）を取得 |
+| POST   | `/obsidian/export/run/{run_id}` | 実行結果を vault に Markdown で書き出す |
+| POST   | `/obsidian/export/workflow/{name}` | ワークフロー定義を vault に書き出す |
+| POST   | `/obsidian/import` | vault からワークフロー定義を取り込む |
+
+## 永続化
+
+ワークフロー定義は `workflows` テーブル、実行結果は `runs` テーブルに
+JSON として保存されます（`app/storage.py`）。サーバー不要の SQLite を使うため、
+追加のミドルウェアなしで再起動後もデータが残ります。
+
+## Obsidian 連携
+
+`AW_VAULT_PATH` を設定すると、指定した vault の下に次の構成でノートを読み書きします。
+
+```
+<vault>/
+├── Workflows/   ワークフロー定義ノート (aw-type: workflow)
+└── Runs/        実行結果ノート (aw-type: run)
+```
+
+- **エクスポート（アプリ → vault）**: 実行結果は trace（どのノードをどの条件で
+  通過したか）のテーブルと最終 context を持つ Markdown ノートになります。
+- **インポート（vault → アプリ）**: `Workflows/` 配下の、`aw-type: workflow` の
+  フロントマターを持つノートに埋め込まれた JSON コードブロックを読み取り、
+  ワークフロー定義として DB に取り込みます。Obsidian 上で編集した定義を
+  そのまま実行できます（双方向）。
 
 ## ワークフロー定義
 
