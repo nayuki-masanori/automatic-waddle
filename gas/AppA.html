@@ -35,8 +35,8 @@ function blankCase(k){const t=new Date();k=k||blankKarte();
     status:'デザイン',createdAt:t.toISOString(),updatedAt:t.toISOString(),
     k:JSON.parse(JSON.stringify(k)),
     d:{item:k.item,model:ctype==='none'?'free':'sol6',metal,finish:'鏡面',size:+k.size||11,prof:'koma',w:2.0,t:1.6,W:'',H:'',D:'',skel:'',seth:'std',ctype,ct:ctGuess>0&&ctGuess<=3?ctGuess:0.30,cstone:'ルビー',cmm:5.0,m:1.2,chain:'chain20',dir:k.req||'',dirEn:''},
-    q:{w:'',center:{grade:1,unit:'',cost:''},sides:[],extras:[],tier:'auto'},
-    anchors:[],img:{step:1,svc:'gemini',style:(k.moods||[]).find(m=>STYLES[m])||'classic',sheets:[],sheetId:null,pick:'',add:'',fix:'',finals:[],refs:JSON.parse(JSON.stringify((k.design||[]).map(a=>Object.assign({},a,{design:true})).concat(k.refs||[]).map(a=>Object.assign({},a,{fromK:true})))),read:null},
+    q:{w:'',center:{grade:1,unit:'',cost:''},sides:[],extras:[],tier:'auto',ov:{}},
+    anchors:[],img:{step:1,svc:'gemini',base:'text',sketches:[],sketchNote:'',style:(k.moods||[]).find(m=>STYLES[m])||'classic',sheets:[],sheetId:null,pick:'',add:'',fix:'',finals:[],refs:JSON.parse(JSON.stringify((k.design||[]).map(a=>Object.assign({},a,{design:true})).concat(k.refs||[]).map(a=>Object.assign({},a,{fromK:true})))),read:null},
     quote:null,order:{date:iso(t),paid:'',done:false,todo:{}},settle:{w:'',ct:'',ccost:'',sides:{},done:null},
     pub:{slot:'案A'}};}
 function sampleKarte(){const k=blankKarte();Object.assign(k,{name:'山田 花子（サンプル）',staff:'田中',purpose:'婚約・記念日',metal:'Pt950',stone:'ダイヤ',stoneNote:'0.3ct前後',bmax:600000,req:'結婚10周年。普段も着けられる上品なもの。横から見ても石座がすっきりしていること。',status:'本社待ち'});return k;}
@@ -152,49 +152,72 @@ function geom(d,c=CASE){
 
 /* ═════════ 見積 ═════════ */
 function centerGuide(ct,g){let row=M.center[0];M.center.forEach(r=>{if(ct>=r[0]-1e-9)row=r;});return row[1][g];}
-function castCost(w,cls){const col=cls==='Pt'?2:1;for(const r of M.castSTL){if(w<=r[0])return {v:r[col],over:false};}return {v:M.castSTL.at(-1)[col],over:true};}
+/* マスターの値を「場所の名前」で読む・書く（例：metals.K18YG.g ／ cad.2 ／ side.d10.pc） */
+const numOr=v=>(v===''||v==null||isNaN(+v))?null:+v;
+function mPath(path){const ks=path.split('.');if(ks[0]==='side')return ['sides',String(M.sides.findIndex(s=>s.id===ks[1])),ks[2]];return ks;}
+function mGet(path){let o=M;for(const k of mPath(path)){if(o==null)return undefined;o=o[k];}return o;}
+function mSet(path,v,tmp){const ks=mPath(path);
+  if(ks[0]==='castSTL'){M.castSTL=M.castSTL||[];if(!M.castSTL[+ks[1]])M.castSTL[+ks[1]]=[9999,'',''];}
+  let o=M;for(let i=0;i<ks.length-1;i++){if(o[ks[i]]==null)return false;o=o[ks[i]];}o[ks.at(-1)]=v;
+  if(ks[0]==='metals'&&ks[2]==='g')M.metals[ks[1]].gs=v==null?'mis':tmp?'tmp':'fix';
+  if(ks[0]==='center')M.centerSrc=tmp?'tmp':'fix';if(ks[0]==='parts'&&M.parts[ks[1]])M.parts[ks[1]].s=tmp?'tmp':'fix';
+  if(ks[0]==='sides'&&ks[2]==='ct'&&M.sides[+ks[1]])M.sides[+ks[1]].ctSrc='fix';return true;}
+function castIdx(w){const T=M.castSTL||[];for(let i=0;i<T.length;i++)if(w<=T[i][0])return {i,over:false};return {i:Math.max(0,T.length-1),over:T.length>0};}
+function castCost(w,cls){const x=castIdx(w);return {v:((M.castSTL||[])[x.i]||[])[cls==='Pt'?2:1],over:x.over};}
 function autoTier(d){return d.model==='free'?3:d.item==='ring'?(d.model==='halo'?2:1):(d.model==='halo'?1:0);}
-function setUnit(method,mm){const big=mm>2.5;
-  if(method==='共有爪')return big?M.set.m_sh:M.set.s_sh;
-  if(method==='爪留（独立爪）')return mm>6?M.set.c6:mm>4?M.set.c46:big?M.set.m_ind:M.set.s_ind;
-  if(method==='彫り留め')return M.set.hori;if(method==='覆輪留め')return big?M.set.bezM:M.set.bezS;return M.set.rail;}
+const SETN={s_ind:'爪留 〜Ø2.5 独立',s_sh:'爪留 〜Ø2.5 共有',m_ind:'爪留 Ø2.6〜4.0 独立',m_sh:'爪留 Ø2.6〜4.0 共有',c46:'爪留 Ø4.1〜6.0',c6:'爪留 Ø6.1〜',hori:'彫り留め',rail:'レール留め',bezS:'覆輪 〜Ø2.5',bezM:'覆輪 Ø2.6〜4.0'};
+function setCode(method,mm){const big=mm>2.5;
+  if(method==='共有爪')return big?'m_sh':'s_sh';
+  if(method==='爪留（独立爪）')return mm>6?'c6':mm>4?'c46':big?'m_ind':'s_ind';
+  if(method==='彫り留め')return 'hori';if(method==='覆輪留め')return big?'bezM':'bezS';return 'rail';}
+function setUnit(method,mm){return M.set[setCode(method,mm)];}
+/* 脇石の1個単価：この案件で入力した値があればそれ、なければ原価マスター */
+function sidePc(s,c=CASE){const o=numOr((c.q.ov||{})['side.'+s.id+'.pc']);return o!=null?o:numOr(s.pc);}
 function quoteCalc(c=CASE){
-  const d=c.d,G=geom(d,c),mt=M.metals[d.metal]||M.metals.K18YG,cls=mt.cls,L=[];
+  const d=c.d,G=geom(d,c),mk=M.metals[d.metal]?d.metal:'K18YG',mt=M.metals[mk],cls=mt.cls,L=[],used=[],ov=c.q.ov||{};
+  /* 単価の決め方：この案件で入力した値 → 原価マスター → どちらも無ければ 0円（未入力）として計算 */
+  const U=(path,label,kind)=>{const o=numOr(ov[path]),m=numOr(mGet(path)),v=o!=null?o:m;if(!used.some(x=>x.path===path))used.push({path,label,m,o,kind:kind||'yen'});return {v:v==null?0:v,has:v!=null,src:o!=null?'in':m!=null?'fix':'mis'};};
+  const yu=u=>u.has?yen(u.v):'未入力',worst=(...a)=>a.some(x=>x.src==='mis')?'mis':a.some(x=>x.src==='in')?'in':'fix';
   const wIn=+c.q.w>0,w=wIn?+c.q.w:G.wTotal;
   const add=(grp,n,f,v,src)=>L.push({grp,n,f,v,src});
-  add('地金',`${d.metal} 地金`,`${f2(w)}g ×（1＋ロス ${(mt.loss*100).toFixed(0)}%）× ${yen(mt.g)}/g`,w*mt.g*(1+mt.loss),mt.gs==='fix'?(wIn?'in':'fix'):'tmp');
+  const g=U(`metals.${mk}.g`,`${mk} 地金のg単価（円/g）`),loss=U(`metals.${mk}.loss`,`${mk} 地金のロス率（0.05＝5%）`,'rate');
+  add('地金',`${d.metal} 地金`,`${f2(w)}g ×（1＋ロス ${(loss.v*100).toFixed(0)}%）× ${yu(g)}/g`,w*g.v*(1+loss.v),g.src==='fix'?(mt.gs==='fix'?(wIn?'in':'fix'):'tmp'):g.src);
   let center={type:d.ctype,ct:0,unit:0,cost:0,label:''};
   if(d.ctype==='dia'){const u=+c.q.center.unit;center={type:'dia',ct:+d.ct,unit:u,cost:u*d.ct*G.pcs,grade:M.grades[c.q.center.grade],label:`ダイヤ ${(+d.ct).toFixed(2)}ct ${M.grades[c.q.center.grade]}`};
     add('石',`中石 ${center.label}${G.pcs>1?' ×2':''}`,`${G.pcs}石 × ${(+d.ct).toFixed(2)}ct × ${u?yen(u):'未入力'}/ct`,center.cost,u?'in':'mis');}
   else if(d.ctype==='color'){const v=+c.q.center.cost;center={type:'color',ct:0,unit:0,cost:v*G.pcs,label:`${d.cstone} Ø${(+d.cmm).toFixed(1)}mm`};add('石',`中石 ${center.label}`,`${G.pcs}石 × ${v?yen(v):'未入力'}`,center.cost,v?'in':'mis');}
   else if(d.ctype==='consign'){center={type:'consign',ct:+c.k.cs.ct||0,unit:0,cost:0,label:`お預り石（${c.k.cs.type}）`};add('石','中石 お預り石','石代は計上しない',0,'fix');}
   const sides=[];
-  sideRows(c).forEach(r=>{const s=sideById(r.mid),n=+r.qty||0;if(!s||!n)return;const ctT=s.ct*n,uct=s.pc/s.ct;
-    sides.push({key:'s'+sides.length,mid:s.id,name:`${s.name} Ø${s.mm}mm${s.grade?' '+s.grade:''}`,mm:s.mm,qty:n,ctpc:s.ct,pc:s.pc,ctT,uct,set:r.set,auto:!!r.auto});
-    add('石',`脇石 ${s.name} Ø${s.mm}mm`,`${n}個 × ${yen(s.pc)}（${f3(ctT)}ct・${yen(uct)}/ct）`,s.pc*n,s.src);});
+  sideRows(c).forEach(r=>{const s=sideById(r.mid),n=+r.qty||0;if(!s||!n)return;const pc=U(`side.${s.id}.pc`,`脇石 ${s.name} Ø${s.mm}mm の1個単価（円）`),ctT=s.ct*n,uct=pc.v/s.ct;
+    sides.push({key:'s'+sides.length,mid:s.id,name:`${s.name} Ø${s.mm}mm${s.grade?' '+s.grade:''}`,mm:s.mm,qty:n,ctpc:s.ct,pc:pc.v,ctT,uct,set:r.set,auto:!!r.auto});
+    add('石',`脇石 ${s.name} Ø${s.mm}mm`,`${n}個 × ${yu(pc)}（${f3(ctT)}ct・${yen(uct)}/ct）`,pc.v*n,pc.src==='fix'?s.src:pc.src);});
   const tier=c.q.tier==='auto'?autoTier(d):+c.q.tier,TN=['D','C','A','A+'][tier];
-  add('製造',`CADモデリング（${TN}）`,'',M.cad[tier],'fix');
-  add('製造','3Dプリント原型',`${G.pcs}点 × ${yen(M.print[tier])}`,M.print[tier]*G.pcs,'fix');
-  const cc=castCost(w/G.pcs,cls);add('製造','キャスト',`${G.pcs}点 × ${yen(cc.v)}${cc.over?'（13g超：要見積）':''}`,cc.v*G.pcs,'fix');
-  if(G.cmm){const cu=setUnit('爪留（独立爪）',G.cmm);add('製造','石留 中石',`${G.pcs}石 × ${yen(cu)}`,cu*G.pcs,'fix');}
-  sides.forEach(s=>{const u=setUnit(s.set,s.mm);add('製造',`石留 脇石（${s.set}）`,`${s.qty}個 × ${yen(u)}`,u*s.qty,'fix');});
-  const brz=d.item==='pierce'?2:1;
-  add('製造','組立・ロウ付け',`${yen(M.assembly)}×${G.pcs} ＋ ${yen(M.braze)}×${brz}`,M.assembly*G.pcs+M.braze*brz,'fix');
-  add('製造',`仕上・研磨（${TN}）`,`${G.pcs}本 × ${yen(M.finish[tier])}`,M.finish[tier]*G.pcs,'fix');
-  if(d.finish!=='鏡面'){const v=M.tex[d.finish];add('製造',`表面加工（${d.finish}）`,v==null?'単価未入力':'',v||0,v==null?'mis':'fix');}
-  if(mt.rh)add('製造','ロジウム','WGのみ',M.rh[d.item],'fix');
-  add('製造','刻印（品位）',`${G.pcs}点`,M.stamp*G.pcs,'fix');
+  const cad=U(`cad.${tier}`,`CADモデリング（${TN}）`);add('製造',`CADモデリング（${TN}）`,cad.has?'':'単価未入力',cad.v,cad.src);
+  const pr=U(`print.${tier}`,`3Dプリント原型（${TN}・1点）`);add('製造','3Dプリント原型',`${G.pcs}点 × ${yu(pr)}`,pr.v*G.pcs,pr.src);
+  const ci=castIdx(w/G.pcs),band=(M.castSTL||[])[ci.i],cc=U(`castSTL.${ci.i}.${cls==='Pt'?2:1}`,`キャスト（${cls==='Pt'?'Pt':'金'}・1点${band&&band[0]<9999?`・〜${band[0]}g`:''}）`);
+  add('製造','キャスト',`${G.pcs}点 × ${yu(cc)}${ci.over?'（重量帯の上限超：要見積）':''}`,cc.v*G.pcs,cc.src);
+  if(G.cmm){const k=setCode('爪留（独立爪）',G.cmm),cu=U('set.'+k,`石留 ${SETN[k]}（1石）`);add('製造','石留 中石',`${G.pcs}石 × ${yu(cu)}`,cu.v*G.pcs,cu.src);}
+  sides.forEach(s=>{const k=setCode(s.set,s.mm),u=U('set.'+k,`石留 ${SETN[k]}（1石）`);add('製造',`石留 脇石（${s.set}）`,`${s.qty}個 × ${yu(u)}`,u.v*s.qty,u.src);});
+  const brz=d.item==='pierce'?2:1,as=U('assembly','組立（1点）'),bz=U('braze','ロウ付け（1か所）');
+  add('製造','組立・ロウ付け',`${yu(as)}×${G.pcs} ＋ ${yu(bz)}×${brz}`,as.v*G.pcs+bz.v*brz,worst(as,bz));
+  const fn=U(`finish.${tier}`,`仕上・研磨（${TN}・1本）`);add('製造',`仕上・研磨（${TN}）`,`${G.pcs}本 × ${yu(fn)}`,fn.v*G.pcs,fn.src);
+  if(d.finish!=='鏡面'){const v=U(`tex.${d.finish}`,`表面加工（${d.finish}）`);add('製造',`表面加工（${d.finish}）`,v.has?'':'単価未入力',v.v,v.src);}
+  if(mt.rh){const r=U(`rh.${d.item}`,`ロジウム（${ITEMS_JP[d.item]}）`);add('製造','ロジウム','WGのみ',r.v,r.src);}
+  const st=U('stamp','刻印（品位・1点）');add('製造','刻印（品位）',`${G.pcs}点 × ${yu(st)}`,st.v*G.pcs,st.src);
   const labor=L.filter(x=>x.grp==='製造'&&!/CAD|プリント/.test(x.n)).reduce((a,x)=>a+x.v,0);
-  add('製造','検品・品質確認・マージン',`加工工賃 ${yen(labor)} × ${(M.inspect-1).toFixed(2)}`,labor*(M.inspect-1),'fix');
-  if(d.item==='pierce'){const p=M.parts.post;add('パーツ',p.n,'',p[cls],p.s);}
-  if(d.item==='pendant'){const ch=M.parts[d.chain],cp=M.parts.clasp;add('パーツ',ch.n,'',ch[cls],ch.s);add('パーツ',cp.n,'',cp[cls],cp.s);}
-  Object.values(M.extras).forEach(x=>{if(x.inc&&x.v!=null)add('付帯',x.n,'',x.v,'fix');});
-  if(d.ctype==='consign'){const fee=M.extras.csFee.v;add('付帯','お預り石 取扱料','',fee||0,fee==null?'mis':'fix');}
+  const ins=U('inspect','検品・マージン係数（1.10＝加工工賃の10%を加算）','rate'),insV=ins.has?ins.v:1;
+  add('製造','検品・品質確認・マージン',ins.has?`加工工賃 ${yen(labor)} × ${(insV-1).toFixed(2)}`:'係数未入力（加算なし）',labor*(insV-1),ins.src);
+  const part=key=>{const p=M.parts[key];if(!p)return;const u=U(`parts.${key}.${cls}`,`${p.n}（${cls}）`);add('パーツ',p.n,u.has?'':'単価未入力',u.v,u.src==='fix'?p.s:u.src);};
+  if(d.item==='pierce')part('post');
+  if(d.item==='pendant'){part(d.chain);part('clasp');}
+  Object.entries(M.extras).forEach(([k,x])=>{if(x.inc&&k!=='csFee'){const u=U(`extras.${k}.v`,x.n);add('付帯',x.n,u.has?'':'単価未入力',u.v,u.src);}});
+  if(d.ctype==='consign'&&M.extras.csFee){const fee=U('extras.csFee.v',M.extras.csFee.n);add('付帯','お預り石 取扱料',fee.has?'':'単価未入力',fee.v,fee.src);}
   (c.q.extras||[]).forEach(x=>{if(x.n)add('追加加工',x.n,'工場見積',+x.v||0,x.v===''||x.v==null?'mis':'in');});
+  const mg=U('margin','粗利率（0.70＝70%）','rate');
   const total=L.reduce((a,x)=>a+(x.v||0),0);
-  return {L,total,G,w,wIn,center,sides,tier,price:priceOf(total)};
+  return {L,total,G,w,wIn,center,sides,tier,used,metalKey:mk,g:g.v,gHas:g.has,loss:loss.v,margin:mg.v,marginHas:mg.has,price:mg.has?priceOf(total,mg.v):null};
 }
-function priceOf(cost,m=M.margin,U=M.unit,rnd=M.round,t=M.tax){if(!(cost>0)||m>=1)return null;const theo=cost/(1-m);let pre;
+function priceOf(cost,m=M.margin,U=M.unit,rnd=M.round,t=M.tax){if(!(cost>0)||m===''||m==null||isNaN(+m)||+m>=1)return null;m=+m;const theo=cost/(1-m);let pre;
   if(rnd==='切上げ')pre=Math.ceil(theo/U)*U;else if(rnd==='四捨五入')pre=Math.round(theo/U)*U;else pre=Math.floor(theo/U)*U;
   return {theo,pre,inc:Math.round(pre*(1+t)),gm:1-cost/pre};}
 function wM(){return M.wMargin!=null&&M.wMargin!==''?+M.wMargin:0.05;}
@@ -341,7 +364,7 @@ async function saveFile(filename,blob){
   toast('この画面ではファイルを保存できません。サムネを右クリック（長押し）して保存してください');}
 
 /* ═════════ ライン・タブ ═════════ */
-const TABS=[{ph:'受付',items:[['inbox','受信カルテ・案件']]},{ph:'画像',items:[['image','デザイン画像']]},
+const TABS=[{ph:'受付',items:[['inbox','受信カルテ・案件']]},{ph:'デザイン',items:[['sketch','デザイン画（手書き）'],['image','画像生成']]},
   {ph:'仕様・見積',items:[['design','仕様・3D'],['est','見積']]},{ph:'お客様へ',items:[['publish','見積書（D&Q）']]},{ph:'受注後',items:[['order','受注・内金'],['settle','完成・精算']]},
   {ph:'管理',items:[['archive','案件アーカイブ'],['master','原価マスター'],['issues','課題']]}];
 const TABKEYS=TABS.flatMap(p=>p.items.map(i=>i[0]));
@@ -530,7 +553,7 @@ async function orderPdf(k,btn){const P=PROPS[k.caseId],o=k.orderReq;if(!P||!o)re
 function orderReqs(){return Object.values(KARTES).filter(k=>k.orderReq&&k.caseId&&CASES[k.caseId]&&!CASES[k.caseId].order?.done);}
 function renderOrderReqs(){const el=$('in_orders');if(!el)return;const L=orderReqs();el.hidden=!L.length;if(!L.length)return;
   el.innerHTML=`<h2>店舗からの受注連絡</h2><div class="list">${L.map(k=>{const o=k.orderReq;return `<div class="row sel" style="grid-template-columns:minmax(0,1fr)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(k.name)} 様　${esc(o.slot)}</b><span class="stb st6">受注連絡</span></div>
-    <span class="muted">${esc(k.store)}・${esc(k.staff)}・受注日 ${esc(o.date)}・内金 ${yen(o.paid)}・連絡 ${fmtDT(o.at)}</span><div class="btns"><button class="btn gold sm" data-oreq="${k.caseId}">⑥ 受注処理へ</button></div></div>`;}).join('')}</div>`;
+    <span class="muted">${esc(k.store)}・${esc(k.staff)}・受注日 ${esc(o.date)}・内金 ${yen(o.paid)}・連絡 ${fmtDT(o.at)}</span><div class="btns"><button class="btn gold sm" data-oreq="${k.caseId}">⑦ 受注処理へ</button></div></div>`;}).join('')}</div>`;
   el.querySelectorAll('[data-oreq]').forEach(b=>b.onclick=()=>{openCase(b.dataset.oreq,true);go('order');});}
 function renderOrderReqBox(){const el=$('o_req');if(!el)return;const k=KARTES[CASE.kId],o=k?.orderReq;el.hidden=!o;if(!o)return;
   const q=CASE.quote,mis=q&&o.quoteNo&&o.quoteNo!==q.no,same=CASE.order.date===o.date&&+CASE.order.paid===+o.paid;
@@ -648,22 +671,23 @@ function progressRows(k){const c=CAP.role==='hq'&&k.caseId?CASES[k.caseId]:null,
   A('本社','受信カルテを開いて内容を確認',k.seen||st>=2,k.seenAt,{tab:'inbox'});
   A('本社','不足があれば店舗に連絡して補う → 案件にする',st>=2||!!k.caseId,null,{tab:'inbox'});
   if(c){const I=c.img||{},mm=withCase(c,()=>matchRows());
-    A('本社','② デザイン画像：お客様のご希望に本社の補正を加え、3案を作る',(I.sheets||[]).length>0||(I.finals||[]).length>0,(I.sheets||[])[0]?.at,{tab:'image'});
-    A('本社','② 見積に回す案を選び、仕上げた画像を「採用」',(I.finals||[]).some(f=>f.pick),((I.finals||[]).find(f=>f.pick)||{}).at,{tab:'image'});
-    A('本社','② 採用画像から石の数・大きさを読み取り、数字を確かめる',!!I.read,I.read?.at,{tab:'image'});
-    A('本社','③ 仕様・3D：型・寸法・石を画像に合わせ、地金重量を見積に渡す',+c.q?.w>0,null,{tab:'design'});
-    A('本社','④ 画像と見積の照合で差がないことを確認',!!mm&&mm.length>0&&mm.every(x=>x.ok),null,{tab:'est',warn:mm&&mm.some(x=>!x.ok)?'差が残っています':''});
-    A('本社','④ 中石の単価を入れ、ご予算と見比べて見積を発行',!!c.quote,c.quote?.at,{tab:'est'});
+    A('本社','② デザイン画（手書き）を取り込む（ない場合は省略）',(I.sketches||[]).length>0||(I.finals||[]).length>0,(I.sketches||[])[0]?.at,{tab:'sketch'});
+    A('本社','③ 画像生成：デザイン画・希望デザイン画像・3D画像・言葉から画像を作る',(I.sheets||[]).length>0||(I.finals||[]).length>0,((I.sheets||[])[0]||(I.finals||[])[0]||{}).at,{tab:'image'});
+    A('本社','③ 見積に回す案を選び、仕上げた画像を「採用」',(I.finals||[]).some(f=>f.pick),((I.finals||[]).find(f=>f.pick)||{}).at,{tab:'image'});
+    A('本社','③ 採用画像から石の数・大きさを読み取り、数字を確かめる',!!I.read,I.read?.at,{tab:'image'});
+    A('本社','④ 仕様・3D：型・寸法・石を画像に合わせ、地金重量を見積に渡す',+c.q?.w>0,null,{tab:'design'});
+    A('本社','⑤ 画像と見積の照合で差がないことを確認',!!mm&&mm.length>0&&mm.every(x=>x.ok),null,{tab:'est',warn:mm&&mm.some(x=>!x.ok)?'差が残っています':''});
+    A('本社','⑤ 中石と不足している単価を入れ、ご予算と見比べて見積を発行',!!c.quote,c.quote?.at,{tab:'est'});
   }else A('本社','デザイン画像と見積を作成',st>=3||!!P,null);
-  A('本社','⑤ 見積書（Design & Quotation）を公開して店舗に送る',!!P,P?.pdf?.at||P?.updatedAt,{tab:'publish'});
+  A('本社','⑥ 見積書（Design & Quotation）を公開して店舗に送る',!!P,P?.pdf?.at||P?.updatedAt,{tab:'publish'});
   A('店舗','見積書PDFを受け取り、保存・印刷',!!k.pdfGotAt,k.pdfGotAt);
   A('店舗','お客様に見積書を提示して商談（上限価格・減額・内金50%を説明）',!!ch.presented||!!k.orderReq||st>=5||lost,ch.presented,{manual:'presented',by:'store'});
   if(lost){A('店舗','見送り（ボツ）：決まらなかった理由をアーカイブに記録',true,k.result.at);}
   else{
     A('店舗','ご注文が決まったら内金をお預りし、受注を本社に連絡',!!k.orderReq||st>=5,k.orderReq?.at);
     A('店舗','「ご注文書」にご署名をいただき、控えをお渡し',!!ch.orderDoc,ch.orderDoc,{manual:'orderDoc',by:'store'});
-    A('本社','⑥ 受注連絡の内容（案・サイズ・内金）を確かめて受注を確定',st>=5,c?.order?.at||null,{tab:'order'});
-    A('本社','⑥ 制作指示書を工場に渡す',!!ch.factory,ch.factory,{manual:'factory',by:'hq',tab:'order'});
+    A('本社','⑦ 受注連絡の内容（案・サイズ・内金）を確かめて受注を確定',st>=5,c?.order?.at||null,{tab:'order'});
+    A('本社','⑦ 制作指示書を工場に渡す',!!ch.factory,ch.factory,{manual:'factory',by:'hq',tab:'order'});
     A('店舗','決め手をアーカイブに記録',!!(k.result&&((k.result.reasons||[]).length||k.result.note)),k.result?.at);}
   return R;}
 function progressHTML(k,opt={}){const R=progressRows(k),now=R.findIndex(r=>!r.done),done=R.filter(r=>r.done).length,role=CAP.role==='hq'&&line==='hq'?'hq':'store';

@@ -138,7 +138,7 @@
 <!-- ① 受信 -->
 <section class="pane" id="p-inbox">
   <h1 class="ph">受信カルテ・案件</h1>
-  <p class="lead">店舗から届いたカルテの中身を確認し、「案件にする」で作業を始めます。案件は ②デザイン画像 → ③仕様・3D → ④見積 → ⑤見積書 の順に、各ページ下のボタンで進めます。</p>
+  <p class="lead">店舗から届いたカルテの中身を確認し、「案件にする」で作業を始めます。案件は ②デザイン画（手書き） → ③画像生成 → ④仕様・3D → ⑤見積 → ⑥見積書 の順に、各ページ下のボタンで進めます。</p>
   <div class="grid2">
     <div class="stack">
       <div class="card stack tgt" id="in_orders" hidden></div>
@@ -153,7 +153,7 @@
 <!-- ② デザイン -->
 <section class="pane" id="p-design">
   <h1 class="ph">仕様・3D</h1>
-  <p class="lead">見積の土台になる型・寸法・石を決めます。デザイン画像で選んだ案に合わせて調整すると、3Dと4面サムネがその場で描き直され、推定重量を見積の参考値に使えます。</p>
+  <p class="lead">見積の土台になる型・寸法・石を決めます。画像生成で選んだ案に合わせて調整すると、3Dと4面サムネがその場で描き直され、推定重量を見積の参考値に使えます。</p>
   <div class="work">
     <div class="card stack">
       <div><h3 style="margin-top:0">アイテム</h3><div class="seg" id="d_item"></div></div>
@@ -203,7 +203,7 @@
       <div class="card"><h2>実現性チェック</h2><div class="checks" id="dChecks"></div></div>
       <div class="card stack">
         <h2>意匠アンカー</h2>
-        <p class="muted" style="margin:0">守る形・石配置・留めを言葉で固定します。「必ず保持」はデザイン画像の仕上げ・修正の指示文に入り、制作指示書にも載ります。</p>
+        <p class="muted" style="margin:0">守る形・石配置・留めを言葉で固定します。「必ず保持」は画像生成の仕上げ・修正の指示文に入り、制作指示書にも載ります。</p>
         <div id="ancList"></div>
         <div class="btns"><button class="btn ghost sm" id="addAnc">アンカーを追加</button></div>
         <label class="f">デザインの方向性<textarea id="d_dir"></textarea></label>
@@ -212,10 +212,29 @@
   </div>
 </section>
 
-<!-- ① デザイン画像 -->
+<!-- ② デザイン画（手書き） -->
+<section class="pane" id="p-sketch">
+  <h1 class="ph">デザイン画（手書き）</h1>
+  <p class="lead">本社のデザイナーが描いたデザイン画を取り込みます。次の「③画像生成」で、このデザイン画のとおりの形を、お客様にお見せできる写真のような画像にします。デザイン画がない案件は、何も入れずに③へ進めます（希望デザイン画像・3D画像・言葉だけから作れます）。</p>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card stack">
+        <h2>デザイン画を入れる（4枚まで・1枚10MBまで）</h2>
+        <div class="drop" id="sk_drop" tabindex="0">ここに<b>貼り付け（Ctrl/⌘+V）</b>、<b>ドラッグ</b>、または <label class="lnk">ファイルを選ぶ・写真を撮る<input type="file" id="sk_in" accept="image/png,image/jpeg,image/webp" multiple hidden></label></div>
+        <div class="refs" id="sk_list"></div>
+        <label class="f"><span>デザイン画の補足（絵で伝わりにくいこと：石の数・留め方・寸法・仕上げなど）</span><textarea id="sk_note" placeholder="例：中石は6本爪。腕の両肩にメレ3石ずつ（計6石）、彫り留め。腕は甲丸で幅2.2mm。石座の横は透かし。"></textarea></label>
+        <p class="muted" style="margin:0">きれいに読み取らせるコツ：白い紙に濃い線で描く／真上から、影が入らないように撮る（スキャンが最良）／1枚に1つの向き（正面・側面など）／寸法や注記は上の補足欄に文字で書く。</p>
+      </div>
+      <div class="card"><h2>次にやること</h2><div class="checks" id="sk_next"></div></div>
+    </div>
+    <div class="card stack srcA"><h2>お客様のご希望（カルテ）</h2><div id="sk_karte"></div></div>
+  </div>
+</section>
+
+<!-- ③ 画像生成 -->
 <section class="pane" id="p-image">
-  <h1 class="ph">デザイン画像</h1>
-  <p class="lead">お客様に見せるイメージ画像を作り、決めた画像の内容を見積に渡します。画像はGeminiで作ります。「Geminiで自動生成」を押すとその場で取り込まれます（使えない設定のときは、指示をコピーしてGeminiに貼り付けます）。ボタンで指示をコピーして生成画面を開き、できた画像をここに貼り付けてください。</p>
+  <h1 class="ph">画像生成</h1>
+  <p class="lead">お客様に見せるイメージ画像を作り、決めた画像の内容を見積に渡します。<b>デザイン画（手書き）・希望デザイン画像（実物の写真など）・3D画像・言葉だけ</b>のどれをもとに作るかを選べます。「Geminiで自動生成」を押すとその場で取り込まれます。Gemini・Google Flow・ChatGPT（GPT Image）など、ほかの画像AIで作るときは、ボタンで指示をコピーして貼り付け、できた画像をここに貼り付けてください。</p>
   <ol class="istep" id="iStep"></ol>
 
   <!-- STEP 1 -->
@@ -246,13 +265,14 @@
     <div class="grid2" style="margin-top:16px">
       <div class="card stack ask">
         <h2>頼む内容（A＋B）</h2>
+        <div><h3 style="margin-top:0">何をもとに作りますか</h3><div class="seg" id="i_base"></div></div>
+        <p class="muted" style="margin:0"><span id="i_baseHint"></span> 光・背景・質感はPonte Vecchioの見え方に固定されます。</p>
         <div id="i_summary" class="asksum"></div>
-        <p class="muted" style="margin:0">雰囲気・ご要望の違う<b>3案を1枚</b>にまとめて作ります。光・背景・質感はPonte Vecchioの見え方に固定されます。</p>
-        <button class="btn gold wide" data-istep="2">次へ：3案を作る</button>
+        <button class="btn gold wide" data-istep="2" id="i_next1">次へ：3案を作る</button>
       </div>
       <div class="card stack">
         <h2>希望デザイン画像・参考資料</h2>
-        <p class="muted" style="margin:0">カルテの「イメージに近い画像」（金枠）とお預り品の写真です。<b>生成画面で指示文と一緒に添付</b>してください（気に入ったところは指示文に自動で入ります）。</p>
+        <p class="muted" style="margin:0">カルテの「イメージに近い画像」（金枠）とお預り品の写真です。実物の写真などを足すときは「ファイルを追加」で入れます。<b>生成画面で指示文と一緒に添付</b>してください（気に入ったところは指示文に自動で入ります）。</p>
         <button class="btn sm" id="refImp" hidden></button>
         <label class="btn ghost sm" style="align-self:flex-start">ファイルを追加<input type="file" id="refIn" accept="image/*,.pdf,application/pdf" multiple hidden></label>
         <div class="refs" id="refs"></div>
@@ -264,10 +284,11 @@
   <div class="ipanel" data-s="2">
     <div class="grid2">
       <div class="card stack">
-        <h2>3案を作る</h2>
+        <h2 id="i_h2a">3案を作る</h2>
+        <p class="muted" style="margin:0">使う画像AIを選びます。どれを選んでも、指示文は同じ内容がコピーされます。</p>
         <div class="svc" id="i_svc"></div>
         <ol class="howto">
-          <li><div class="btns"><button class="btn gold" id="go1">指示をコピーして<span class="svcName">Gemini</span>を開く</button><button class="btn" id="gen1" hidden>Geminiで自動生成</button></div></li>
+          <li><div class="btns"><button class="btn gold" id="go1">指示をコピーして<span class="svcName">Gemini</span>を開く</button><button class="btn" id="gen1" hidden>Geminiで自動生成</button><button class="btn ghost sm" id="i_dlBase" hidden>添付する画像を保存</button></div></li>
           <li><span class="svcName">Gemini</span>の入力欄に貼り付けて送ります。<span id="refHint"></span><br><small class="muted" id="manusHint">「Geminiで自動生成」が使えるときは、コピー・貼り付けなしで画像が右の欄に入ります。</small></li>
           <li>できた画像をコピーし、右の欄に貼り付けるか「ファイルを選ぶ」で取り込みます。</li>
         </ol>
@@ -275,7 +296,7 @@
         <button class="btn ghost sm" data-istep="1" style="align-self:flex-start">← 依頼内容に戻る</button>
       </div>
       <div class="card stack">
-        <h2>できた3案</h2>
+        <h2 id="i_h2b">できた3案</h2>
         <div class="drop" data-drop="sheet" tabindex="0">ここに<b>貼り付け（Ctrl/⌘+V）</b>、<b>ドラッグ</b>、または <label class="lnk">ファイルを選ぶ<input type="file" data-file="sheet" accept="image/png,image/jpeg,image/webp" hidden></label></div>
         <div id="sheetBox"></div>
       </div>
@@ -292,8 +313,8 @@
         <div class="btns"><button class="btn gold" id="go2">仕上げの指示をコピーして<span class="svcName">Gemini</span>を開く</button><button class="btn" id="gen2" hidden>Geminiで自動生成</button></div>
         <p class="muted" style="margin:0">生成画面では、<b>3案の画像を添付</b>してから貼り付けてください。できた画像は右の欄へ。</p>
         <details><summary class="muted">指示文の中身を見る</summary><pre class="prompt" id="prompt2"></pre></details>
-        <h3>見積の仕様に合わせた確定画像（③仕様・3Dの後）</h3>
-        <p class="muted" style="margin:0">③で型・寸法・石数を決めた後に作ります。石の数と大きさ、腕の寸法を数字で指定し、3Dの基準画像で形を合わせるので、<b>画像と見積の差が小さく</b>なります。</p>
+        <h3>見積の仕様に合わせた確定画像（④仕様・3Dの後）</h3>
+        <p class="muted" style="margin:0">④で型・寸法・石数を決めた後に作ります。石の数と大きさ、腕の寸法を数字で指定し、3Dの基準画像で形を合わせるので、<b>画像と見積の差が小さく</b>なります。</p>
         <div class="btns"><button class="btn ghost sm" id="save3d">3D基準画像を保存</button><button class="btn" id="go4">確定画像の指示をコピーして開く</button><button class="btn" id="gen4" hidden>Geminiで自動生成</button></div>
         <p class="muted" style="margin:0">生成画面では、<b>①採用中の画像 ②保存した3D基準画像</b>の順に添付してから貼り付けます。できた画像を取り込んで「採用」し、前の画像の採用を外します。</p>
         <h3>別の角度・直したいところ</h3>
@@ -337,7 +358,7 @@
 <!-- ④ 見積 -->
 <section class="pane" id="p-est">
   <h1 class="ph">見積</h1>
-  <p class="lead">見積の土台になる<b>地金重量</b>と<b>中石</b>は、その都度入力します。脇石は原価マスターの1個単価で計算し、1ctあたりの価格も並べて出します。発行した見積の条件と価格は固定され、完成時の精算の基準になります。</p>
+  <p class="lead">見積の土台になる<b>地金重量</b>と<b>中石</b>は、その都度入力します。工賃・地金単価・脇石などの単価は原価マスターから入りますが、<b>マスターが未入力のものは、この画面でその都度入力</b>でき、ボタンひとつで原価マスターにも反映できます。発行した見積の条件と価格は固定され、完成時の精算の基準になります。</p>
   <div class="card tgt tgtS" id="q_target" style="margin-bottom:14px"></div>
   <div class="grid2">
     <div class="stack">
@@ -355,6 +376,12 @@
         <h3 style="margin-bottom:0">追加加工（工場見積）</h3>
         <div class="tbl" id="q_extras"></div>
         <div class="btns"><button class="btn ghost sm" id="q_addx">行を追加</button></div>
+      </div>
+      <div class="card stack">
+        <h2>この案件で使う単価（その都度入力）</h2>
+        <div class="tbl" id="q_costs"></div>
+        <div class="btns"><button class="btn ghost sm" id="q_ovAll">入力した単価をすべて原価マスターに反映</button></div>
+        <p class="muted" style="margin:0">反映した数字は、原価マスターでは<b>「仮値」</b>として入ります（地金・パーツ）。正式な単価が決まったら、原価マスターで上書きしてください。発行済みの見積は変わりません。</p>
       </div>
       <details class="card"><summary style="cursor:pointer;font-weight:700;color:var(--head)">原価の内訳（計算式つき）</summary><div class="tbl" id="q_tbl" style="margin-top:10px"></div></details>
     </div>
@@ -436,7 +463,7 @@
 <!-- ⑧ 原価マスター -->
 <section class="pane" id="p-master">
   <h1 class="ph">原価マスター</h1>
-  <p class="lead">紫の「仮値」はExcelが空欄のためデモで置いた数字で、実勢価格ではありません。脇石は<b>1個単価</b>で管理し、1ctあたりの価格は 1個単価 ÷ 1個のct で逆算して表示します。</p>
+  <p class="lead">空欄の項目は、見積の画面でその都度入力し「マスターに反映」を押すと、ここに入ります（この画面で直接入れても構いません）。紫の「仮値」は、ひとまず入れた数字の印です。脇石は<b>1個単価</b>で管理し、1ctあたりの価格は 1個単価 ÷ 1個のct で逆算して表示します。</p>
   <div class="grid2">
     <div class="stack">
       <div class="card"><h2>脇石（1個単価で管理）</h2><div class="tbl" id="m_sides"></div><div class="btns" style="margin-top:8px"><button class="btn ghost sm" id="m_addSide">脇石を追加</button></div></div>
@@ -446,7 +473,7 @@
       <div class="card"><h2>価格の決め方・内金</h2><div class="tbl" id="m_basic"></div></div>
       <div class="card"><h2>地金</h2><div class="tbl" id="m_metal"></div></div>
       <div class="card"><h2>中石ダイヤ ct単価の目安（円/ct）</h2><div class="tbl" id="m_center"></div></div>
-      <div class="card"><h2>工賃（Excelより）</h2><div class="tbl" id="m_labor"></div></div>
+      <div class="card"><h2>工賃</h2><div class="tbl" id="m_labor"></div></div>
       <div class="card"><h2>パーツ・表面加工・付帯</h2><div class="tbl" id="m_parts"></div></div>
       <div class="card stack"><div class="btns"><button class="btn danger sm" id="m_reset">初期値に戻す</button></div></div>
     </div>
