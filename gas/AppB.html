@@ -1,0 +1,858 @@
+<script>
+/* Sumisura 動き（後半）：連絡・店舗の画面・起動 */
+/* 連絡（店舗↔本社）：質問・補足・見積やデザインの修正依頼 */
+function msgUnread(k,role){const m=(k.msgs||[]).at(-1);return !!m&&m.from!==role&&k.msgAck!==m.at;}
+function msgHTML(k){const role=CAP.role==='hq'&&line==='hq'?'本社':'店舗',L=k.msgs||[],un=msgUnread(k,role),canRev=role==='店舗'&&!!(k.caseId&&PROPS[k.caseId])&&K_ORDER.indexOf(k.status)<5;
+  return `<div class="msg" data-msg="${k.id}"><div class="kdh"><h3 style="margin:0">${role==='店舗'?'本社との連絡':'店舗との連絡'}</h3>${un?`<span class="rs open">${role==='店舗'?'本社':'店舗'}から連絡があります</span>`:''}</div>
+    ${L.length?`<div class="msgl">${L.map(m=>`<div class="mb ${m.from===role?'me':''}"><small>${esc(m.from)}${m.who?'・'+esc(m.who):''}　${fmtDT(m.at)}${m.type==='rev'?'　<b>修正依頼</b>':''}</small><p>${esc(m.text)}</p></div>`).join('')}</div>`:`<p class="muted" style="margin:0">${role==='店舗'?'本社への質問・補足や、お客様からの修正のご希望（もう少し抑えた価格で、石を大きく など）を送れます。':'カルテの不足や確認したいことを店舗に送れます。店舗の画面に表示されます。'}</p>`}
+    <textarea data-mtxt placeholder="${role==='店舗'?'例：お客様より、メレを減らしてご予算30万円以内にしたいとのご希望です。':'例：お預りの石の縦・横・高さをノギスで測って、写真と一緒に送ってください。'}"></textarea>
+    <div class="btns">${canRev?'<label class="chk1" style="margin-right:auto"><input type="checkbox" data-mrev> 見積・デザインの修正依頼として送る</label>':''}${un?'<button class="btn ghost sm" data-mack>確認済みにする</button>':''}<button class="btn" data-msend>${role==='店舗'?'本社に送る':'店舗に送る'}</button></div></div>`;}
+function bindMsg(root,rerender){root.querySelectorAll('[data-msg]').forEach(box=>{const id=box.dataset.msg,role=CAP.role==='hq'&&line==='hq'?'本社':'店舗';
+    box.querySelector('[data-msend]').onclick=async()=>{const t=box.querySelector('[data-mtxt]').value.trim();if(!t)return toast('連絡の内容を書いてください');const rev=box.querySelector('[data-mrev]')?.checked;
+      if(await kPut(id,k=>{k.msgs=k.msgs||[];k.msgs.push({from:role,who:role==='店舗'?(k.staff||''):'',text:t,type:rev?'rev':'',at:new Date().toISOString()});})){toast(role==='店舗'?'本社に送りました':'店舗に送りました');rerender();}};
+    box.querySelector('[data-mack]')?.addEventListener('click',async()=>{if(await kPut(id,k=>{k.msgAck=(k.msgs||[]).at(-1)?.at||null;}))rerender();});});}
+function hqMsgKartes(){return Object.values(KARTES).filter(k=>k.status!=='下書き'&&msgUnread(k,'本社'));}
+
+/* ═════════ 本社：案件の帯 ═════════ */
+function stage(c){if(!c)return -1;if(c.settle?.done)return 5;if(c.order?.done)return 4;if(PROPS[c.id])return 3;if(c.quote)return 2;return 1;}
+function nextStep(c){
+  const s=stage(c);
+  if(s===1){const q=quoteCalc(c);if(!c.img?.finals?.some(f=>f.pick)&&!(+c.q.w>0))return (c.img?.sketches||[]).length||(c.img?.sheets||[]).length?['画像を作り、お客様に見せる案を採用する','image','画像生成へ']:['デザイン画（手書き）を取り込み、画像を作る','sketch','デザイン画へ'];return !(+c.q.w>0)?['仕様・3Dで型と寸法を決め、地金重量を見積に入れる','design','仕様・3Dへ']:c.d.ctype==='dia'&&!(+c.q.center.unit>0)?['中石のct単価を入れて見積を発行する','est','見積へ']:['見積を発行する','est','見積へ'];}
+  if(s===2)return ['お客様用の見積書（Design & Quotation）を公開する','publish','見積書へ'];
+  if(s===3)return ['受注したら内金を受け取り、受注を確定する','order','受注へ'];
+  if(s===4)return ['完成したら実重量・石目を入れて精算する','settle','精算へ'];
+  return ['精算済み。補正係数を見直す','master','原価マスターへ'];}
+function renderStrip(){
+  {const n=Object.values(KARTES).filter(k=>k.status==='本社待ち'&&!k.seen).length+orderReqs().length+hqMsgKartes().length,t=document.querySelector('.tab[data-t="inbox"]');if(t){let b=t.querySelector('.badge');if(n){if(!b){b=document.createElement('em');b.className='badge';t.appendChild(b);}b.textContent=n;b.title=`未確認のカルテ・受注連絡 ${n}件`;}else if(b)b.remove();}}
+  const ids=sortedCases();
+  $('caseSel').innerHTML=ids.length?ids.map(i=>`<option value="${i}">${esc(CASES[i].no)}　${esc(CASES[i].k?.name||'')}</option>`).join(''):'<option value="">案件はまだありません</option>';
+  if(CASE)$('caseSel').value=CASE.id;
+  const s=stage(CASE);$('pipe').innerHTML=CASE?STATUS.map((x,i)=>`<i class="${i<s?'done':i===s?'now':''}">${x}</i>`).join(''):'';
+  if(CASE){const [t,tab,lbl]=nextStep(CASE);$('nextTxt').textContent=t;$('nextBtn').textContent=lbl;$('nextBtn').onclick=()=>go(tab);$('nextBtn').hidden=false;}
+  else{$('nextTxt').textContent='受信したカルテを開いて案件にします';$('nextBtn').hidden=true;}}
+
+/* ① 受信：カルテの中身を本社で確認 → 案件にする → ②へ */
+let INSEL=null; // {t:'k',id} 届いたカルテ / {t:'c',id} 案件
+const fmtDT=s=>s?new Date(s).toLocaleString('ja-JP',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+function karteDetailHTML(k,head){const cs=k.cs||{},R=(l,v)=>v===''||v==null?'':`<tr><th>${l}</th><td>${v}</td></tr>`;
+  const dim=[cs.L&&`縦 ${cs.L}`,cs.W&&`横 ${cs.W}`,cs.H&&`高さ ${cs.H}`].filter(Boolean).join(' × ');
+  return `${head||''}
+  <table class="kv">
+    ${R('お客様',`<b>${esc(k.name||'')}</b> 様`)}${R('店舗・担当',`${esc(k.store||'')}店・${esc(k.staff||'')}`)}${R('用途',esc(k.purpose||''))}
+    ${R('アイテム',`${ITEMS_JP[k.item]||''}${k.item==='ring'?`（${+k.size?k.size+'号':'サイズ未計測'}）`:''}`)}${R('希望の地金',esc(k.metal||'')+(k.metal==='未定'?'（おまかせ）':''))}${R('中石の希望',esc(k.stone||'')+(k.stoneNote?`<div class="muted">${esc(k.stoneNote)}</div>`:''))}
+    ${R('ご予算（税込）',k.bnote?'<b>ご相談</b>':`<b>${yen(+k.bmax||0)}</b> まで`)}${R('ご希望納期',k.dueNote==='特になし'?'特に決まっていない':esc(k.due||''))}${(k.moods||[]).length?R('お好きな雰囲気',k.moods.map(m=>STYLES[m]?.n).filter(Boolean).join('・')):''}
+  </table>
+  <div class="kreq"><h3>ご要望</h3><p>${esc(k.req||'（記入なし）')}</p></div>
+  ${cs.has==='yes'?`<div class="kreq"><h3>お預り品</h3><table class="kv">${cs.type!=='石なし（その他の品のみ）'?R('石',`${esc(cs.type)}・${esc(cs.shape)}${cs.ct?`・${cs.ct}ct`:''}`)+R('大きさ（mm）',dim||'未計測')+R('状態・鑑別書',`${esc(cs.cond)}・鑑別書 ${esc(cs.cert)}`):''}${R('その他の品',esc(cs.other||''))}</table></div>`:''}
+  <div class="kreq"><h3>希望デザインに近い画像（${(k.design||[]).length}枚）</h3>${(k.design||[]).length?`<div class="kdes">${k.design.map(a=>`<figure><button data-lb="${esc(a.url)}"><img src="${esc(a.url)}" alt="希望デザイン"></button>${a.note?`<figcaption>${esc(a.note)}</figcaption>`:''}</figure>`).join('')}</div><p class="muted" style="margin:4px 0 0">案件にすると、③画像生成の参考資料になります。</p>`:'<span class="muted">なし</span>'}</div>
+  <div class="kreq"><h3>お預り品の写真・資料（${(k.refs||[]).length}件）</h3><div class="kimgs">${(k.refs||[]).map(a=>a.pdf?`<a class="kdoc" href="${esc(a.url)}" target="_blank" rel="noopener">PDF<small>${esc(a.name)}</small></a>`:`<button data-lb="${esc(a.url)}" title="${esc(a.name)}"><img src="${esc(a.url)}" alt="${esc(a.name)}"></button>`).join('')||'<span class="muted">なし</span>'}</div></div>
+  <p class="muted" style="margin:0">送信 ${fmtDT(k.sentAt)}${k.seenAt?`・受信確認 ${fmtDT(k.seenAt)}`:''}</p>`;}
+function lightbox(url){let lb=$('lb');if(!lb){lb=document.createElement('div');lb.id='lb';lb.className='lb';lb.onclick=()=>lb.hidden=true;document.body.appendChild(lb);}lb.innerHTML=`<img src="${esc(url)}" alt=""><span>閉じる</span>`;lb.hidden=false;}
+async function takeKarte(id){const k=KARTES[id];if(!k.seen){k.seen=true;k.seenAt=new Date().toISOString();}const c=blankCase(k);CASES[c.id]=c;await put('cases',c.id,c);await setKarteStatus(k.id,'本社対応中',c.id);
+  CASE=migrateImg(JSON.parse(JSON.stringify(c)));lastKey='';thumbKey='';INSEL={t:'c',id:c.id};toast(`案件 ${c.no} を作りました。②デザイン画へ進めます`);render();}
+function renderInbox(){
+  renderOrderReqs();
+  {const el=$('in_msgs'),L=hqMsgKartes();el.hidden=!L.length;if(L.length){el.innerHTML=`<h2>店舗からの連絡（未対応）</h2><div class="list">${L.map(k=>{const m=k.msgs.at(-1);return `<div class="row" style="grid-template-columns:minmax(0,1fr) auto"><div><b>${esc(k.name)} 様${m.type==='rev'?'　<span class="rs lost">修正依頼</span>':''}</b><span class="muted">${esc(k.store)}・${fmtDT(m.at)}　${esc(m.text.slice(0,48))}${m.text.length>48?'…':''}</span></div><button class="chipbtn gold" data-msel="${k.id}">開く</button></div>`;}).join('')}</div>`;
+    el.querySelectorAll('[data-msel]').forEach(b=>b.onclick=()=>{const k=KARTES[b.dataset.msel];if(k.caseId&&CASES[k.caseId]){openCase(k.caseId,true);INSEL={t:'c',id:k.caseId};}else INSEL={t:'k',id:k.id};render();$('in_detail').scrollIntoView({block:'start'});});}}
+  const ks=Object.values(KARTES).filter(k=>k.status==='本社待ち').sort((a,b)=>(a.sentAt||a.updatedAt||'').localeCompare(b.sentAt||b.updatedAt||''));
+  const ids=sortedCases();
+  if(!INSEL||(INSEL.t==='k'&&!ks.some(k=>k.id===INSEL.id))||(INSEL.t==='c'&&!CASES[INSEL.id]))INSEL=CASE?{t:'c',id:CASE.id}:ks[0]?{t:'k',id:ks[0].id}:ids[0]?{t:'c',id:ids[0]}:null;
+  $('in_legend').innerHTML=K_STEPS.map((x,i)=>`<span class="stb st${i}">${x}</span>`).join(' ');
+  $('in_new').innerHTML=ks.length?ks.map(k=>`<div class="row${INSEL?.t==='k'&&INSEL.id===k.id?' sel':''}" style="grid-template-columns:minmax(0,1fr)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(k.name)} 様</b>${stBadge(k)}</div>
+    <span class="muted">${esc(k.store)}・${esc(k.staff)}・${ITEMS_JP[k.item]}・ご予算 ${yen(+k.bmax)}・送信 ${fmtDT(k.sentAt)}</span>
+    <div class="btns"><button class="btn sm" data-ksel="${k.id}">内容を見る</button><button class="btn gold sm" data-take="${k.id}">案件にする</button></div></div>`).join(''):'<div class="empty">新しく届いたカルテはありません。</div>';
+  $('in_new').querySelectorAll('[data-ksel]').forEach(b=>b.onclick=async()=>{const k=KARTES[b.dataset.ksel];INSEL={t:'k',id:k.id};
+    if(!k.seen){k.seen=true;k.seenAt=new Date().toISOString();await put('kartes',k.id,k);toast(`「${k.name}」様のカルテを受信確認しました（店舗に表示されます）`);}render();});
+  $('in_new').querySelectorAll('[data-take]').forEach(b=>b.onclick=()=>takeKarte(b.dataset.take));
+  $('in_cases').innerHTML=ids.length?ids.map(i=>{const c=CASES[i];return `<div class="row${INSEL?.t==='c'&&INSEL.id===i?' sel':''}"><div><b>${esc(c.no)}　${esc(c.k?.name||'')} 様</b><span class="muted">${esc(c.k?.store||'')}・${ITEMS_JP[c.d.item]}・<b style="font-weight:500">${STATUS[stage(c)]}</b></span></div>
+    <div class="btns"><button class="chipbtn" data-open="${i}">開く</button><button class="chipbtn" data-cdel="${i}">削除</button></div></div>`;}).join(''):'<div class="empty">案件はまだありません。</div>';
+  $('in_cases').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openCase(b.dataset.open,true);INSEL={t:'c',id:b.dataset.open};render();});
+  $('in_cases').querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{const id=b.dataset.cdel;
+    if(PROPS[id])return toast('公開中の見積書があるため削除できません。先に⑥で公開をやめてください');
+    if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='もう一度で削除';setTimeout(()=>{b.dataset.arm='';b.textContent='削除';},2500);return;}
+    const c=CASES[id];for(const x of [...(c.img?.vers||[]),...(c.img?.sheets||[]),...(c.img?.finals||[])])await dropImage(x.img);
+    if(await del('cases',id)){if(c.kId&&KARTES[c.kId])await setKarteStatus(c.kId,'本社待ち',null);if(CASE&&CASE.id===id)CASE=null;INSEL=null;toast('案件を削除しました');render();}});
+  // 右：カルテの内容
+  const D=$('in_detail');
+  if(!INSEL){D.innerHTML='<h2>カルテの内容</h2><div class="empty">店舗からカルテが届くと、ここに中身が表示されます。</div>';return;}
+  if(INSEL.t==='k'){const k=KARTES[INSEL.id];
+    D.innerHTML=progressHTML(k,{nav:true})+'<hr class="hr">'+msgHTML(k)+'<hr class="hr">'+karteDetailHTML(k,`<div class="kdh"><h2>カルテの内容</h2>${stBadge(k)}</div>`)+`<div class="btns"><button class="btn gold" data-take2="${k.id}">案件にして ②デザイン画へ</button></div><p class="muted" style="margin:0">足りない情報があれば、案件にする前に店舗へ連絡してください（店舗側で修正して再送できます）。</p>`;
+    D.querySelector('[data-take2]').onclick=async()=>{await takeKarte(k.id);go('sketch');};}
+  else{const c=CASES[INSEL.id],k=KARTES[c.kId]||c.k;
+    D.innerHTML=progressHTML(KARTES[c.kId]||k,{nav:true})+'<hr class="hr">'+(KARTES[c.kId]?msgHTML(KARTES[c.kId])+'<hr class="hr">':'')+karteDetailHTML(k,`<div class="kdh"><h2>カルテの内容</h2><span class="stb st${Math.min(7,3+stage(c))}">${esc(c.no)}・${STATUS[stage(c)]}</span></div>`)+
+      (CASE&&CASE.id===c.id?`<div class="btns"><button class="btn gold" data-go="sketch">② デザイン画へ</button></div>`:`<div class="btns"><button class="btn gold" data-open2="${c.id}">この案件を開いて ②へ</button></div>`);
+    D.querySelector('[data-open2]')?.addEventListener('click',()=>{openCase(c.id,true);go('sketch');});}
+  D.querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lightbox(b.dataset.lb));bindProgress(D,render);bindMsg(D,render);}
+
+/* ② デザイン */
+function fixMetal(){if(!METAL_BY_ITEM[CASE.d.item].includes(CASE.d.metal))CASE.d.metal='Pt950';}
+function initDesign(){
+  segInit('d_item',()=>CASE?.d.item,v=>{CASE.d.item=v;fixMetal();},Object.entries(ITEMS_JP));
+  segInit('d_model',()=>CASE?.d.model,v=>{CASE.d.model=v;},Object.entries(MODELS));
+  segInit('d_seth',()=>CASE?.d.seth,v=>CASE.d.seth=v);
+  segInit('d_ctype',()=>CASE?.d.ctype,v=>{CASE.d.ctype=v;});
+  $('d_size').innerHTML=Array.from({length:19},(_,i)=>`<option value="${i+5}">${i+5}号</option>`).join('');
+  $('d_cstone').innerHTML=COLORCENTER.map(s=>`<option>${s}</option>`).join('');
+  $('d_chain').innerHTML=['chain20','chain25','chain30'].map(k=>`<option value="${k}">${M.parts[k].n}</option>`).join('');
+  ['metal','finish','prof','cstone','chain','dir'].forEach(k=>bind('d_'+k,'c','d.'+k));
+  ['size','W','H','D','skel','cmm','w','t','ct','m'].forEach(k=>bind('d_'+k,'c','d.'+k,true));
+  $('addAnc').onclick=()=>{CASE.anchors.push({cat:'外形',text:'',lock:true});touch();};
+  $('useW').onclick=()=>{CASE.q.w=wQuote();touch();toast(`見積の地金重量を ${f2(CASE.q.w)}g にしました（3D推定＋見立て余裕${Math.round(wM()*100)}%）`);};
+}
+function targetHTML(small){const I=CASE.img||{},picks=(I.finals||[]).filter(f=>f.pick).slice(0,3),r=I.read;
+  if(!picks.length)return `<div class="tgth"><h2>見積対象のデザイン</h2><button class="btn ghost sm" data-go="image">③ 画像生成へ</button></div><div class="empty">③画像生成で「採用」した画像がここに表示されます。採用画像を見ながら、型・寸法・石を合わせてください。</div>`;
+  const rows=r?.rows?.filter(x=>x.on)||[];
+  const spec=rows.length?rows.map(x=>`${x.k==='center'?'中石':'脇石'} ${x.kind==='dia'?'ダイヤ':esc(x.color||'色石')} Ø${x.mm}mm${x.k==='side'?` ×${x.count}`:''}`).join('・'):'';
+  return `<div class="tgth"><h2>見積対象のデザイン</h2><span class="muted">③で採用・${picks.length}枚</span><button class="btn ghost sm" data-go="image">③で変更</button></div>
+    <div class="tgti n${picks.length}">${picks.map(f=>`<button data-lb="${esc(f.img.url)}" title="拡大"><img src="${esc(f.img.url)}" alt="採用画像"></button>`).join('')}</div>
+    ${spec?`<p class="muted" style="margin:0">読み取った仕様：${spec}${r.sent?'（見積に送信済み）':''}</p>`:small?'':'<p class="muted" style="margin:0">③の「見積に渡す」で石の数・大きさを読み取ると、ここに並びます。</p>'}
+    ${matchHTML()}
+    ${small?'':'<p class="muted" style="margin:0">この画像に3D（下）が近くなるよう、左で型・寸法・石を合わせます。画像を押すと拡大します。</p>'}`;}
+function matchRows(){const r=CASE.img?.read,d=CASE.d;if(!r?.rows)return null;const on=r.rows.filter(x=>x.on),out=[];
+  const c=on.find(x=>x.k==='center');
+  if(d.ctype==='dia'){const ci=c&&c.kind==='dia'?mmToCt(c.mm):0;out.push({n:'中石ダイヤ',img:c?`Ø${c.mm}mm（約${f2(ci)}ct）`:'なし',est:`${(+d.ct).toFixed(2)}ct`,ok:!!c&&Math.abs(ci-d.ct)<=Math.max(0.03,d.ct*0.1)});}
+  else if(c&&d.ctype==='none')out.push({n:'中石',img:`Ø${c.mm}mm`,est:'なし',ok:false});
+  const si=on.filter(x=>x.k==='side'),ni=si.reduce((a,x)=>a+(+x.count||0),0),cti=si.filter(x=>x.kind==='dia').reduce((a,x)=>a+mmToCt(x.mm)*x.count,0);
+  const sq=sideRows(CASE).map(x=>({s:sideById(x.mid),q:+x.qty||0})).filter(x=>x.s&&x.q),nq=sq.reduce((a,x)=>a+x.q,0),ctq=sq.filter(x=>x.s.kind==='dia').reduce((a,x)=>a+x.s.ct*x.q,0);
+  if(ni||nq){out.push({n:'脇石の数',img:`${ni}石`,est:`${nq}石`,ok:ni===nq});out.push({n:'脇石ダイヤ 合計',img:`約${f3(cti)}ct`,est:`${f3(ctq)}ct`,ok:Math.abs(cti-ctq)<=Math.max(0.01,ctq*0.1)});}
+  if(d.item==='ring'&&d.model!=='free'&&r.band>0)out.push({n:'腕幅',img:`約${(+r.band).toFixed(1)}mm`,est:`${(+d.w).toFixed(1)}mm`,ok:Math.abs(r.band-d.w)<=0.3});
+  return out;}
+function matchHTML(){const m=matchRows();if(!m||!m.length)return '';const bad=m.filter(x=>!x.ok).length;
+  return `<table class="mt"><tr><th>画像と見積の照合</th><th>画像（読み取り）</th><th>見積の仕様</th><th></th></tr>${m.map(x=>`<tr class="${x.ok?'':'ng'}"><td>${x.n}</td><td>${x.img}</td><td>${x.est}</td><td>${x.ok?'一致':'差あり'}</td></tr>`).join('')}</table>
+  ${bad?'<p class="muted" style="margin:0">差がある行は、④⑤で仕様を画像に合わせるか、③「仕上げる」で<b>見積の仕様に合わせた確定画像</b>を作って、どちらかにそろえてください。</p>':''}`;}
+function renderTarget(id,small){const el=$(id);if(!el)return;el.innerHTML=targetHTML(small);el.querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lightbox(b.dataset.lb));}
+function renderDesign(){
+  renderTarget('d_target',false);
+  $('useWNote').textContent=`見積は上限価格になるため、3D推定に見立て余裕 ${Math.round(wM()*100)}% を足した ${f2(wQuote())}g を使います。実重量が下回った分は精算で減額します。`;
+  const d=CASE.d;['d_item','d_model','d_seth','d_ctype'].forEach(i=>$(i)._sync());
+  $('d_metal').innerHTML=METAL_BY_ITEM[d.item].map(m=>`<option value="${m}">${m}　${M.metals[m].lbl}</option>`).join('');$('d_metal').value=d.metal;
+  $('o_w').textContent=d.w.toFixed(1)+'mm';$('o_t').textContent=d.t.toFixed(1)+'mm';$('o_ct').textContent=(+d.ct).toFixed(2)+'ct（Ø'+ctToMm(d.ct).toFixed(1)+'mm）';$('o_m').textContent='Ø'+(+d.m).toFixed(1)+'mm';
+  $('ringOnly').hidden=!(d.item==='ring'&&d.model!=='free');$('freeCtl').hidden=d.model!=='free';$('pendCtl').hidden=d.item!=='pendant';$('haloCtl').hidden=d.model!=='halo';
+  $('ctDia').hidden=d.ctype!=='dia';$('ctCol').hidden=d.ctype!=='color';$('ctCon').hidden=d.ctype!=='consign';
+  const cs=CASE.k.cs;$('ctCon').innerHTML=`お預り石：${esc(cs.type)}・${esc(cs.shape)}・${cs.ct||'—'}ct・縦${cs.L||cs.mm||'—'}×横${cs.W||cs.mm||'—'}×高さ${cs.H||'—'}mm（カルテより）${cs.other?`<br>その他のお預り品：${esc(cs.other)}`:''}`;
+  const G=geom(d);
+  const spec=[['ご要望',esc(CASE.k.req||'—')],['ご予算',yen(+CASE.k.bmax)+'（税込・上限）'],
+    d.item==='ring'?['サイズ',`${d.size}号（内径 約${G.din.toFixed(1)}mm）`]:null,
+    G.cmm?['中石',`Ø${G.cmm.toFixed(1)}mm`+(d.ctype==='dia'?`（${(+d.ct).toFixed(2)}ct）`:'')]:null,
+    d.model==='halo'?['取り巻き',`メレ Ø${(+d.m).toFixed(1)}mm × ${G.meleN*G.pcs}石`]:null,['制作日数の目安',leadDays(d)+'日']].filter(Boolean);
+  $('specList').innerHTML=spec.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
+  $('wKpi').innerHTML=`<div class="kpi"><small>3D推定（補正後）</small><b>${f2(G.wTotal)}g</b></div><div class="kpi"><small>見積に使う重量</small><b>${+CASE.q.w>0?f2(CASE.q.w)+'g':'未入力'}</b></div>`;
+  const mt=M.metals[d.metal];
+  $('wBreak').innerHTML='<table>'+Object.entries(G.parts).filter(([,v])=>v>0).map(([k,v])=>`<tr><td>${k}</td><td class="n">${f2(v*1.15/1000*mt.dens*G.pcs)}g</td></tr>`).join('')+(d.model==='free'?`<tr><td>骨格（入力）</td><td class="n">${f2(+d.skel||0)}g</td></tr>`:'')+`<tr><td>補正係数（${MODELS[d.model]}）</td><td class="n">×${G.cf.toFixed(2)}</td></tr><tr class="tot"><td>推定重量</td><td class="n">${f2(G.wTotal)}g</td></tr></table><p class="muted" style="margin:6px 0 0">体積×比重${mt.dens}。精算した案件の実重量から補正係数を更新すると、推定が実物に近づきます。</p>`;
+  $('dChecks').innerHTML=checkHTML(checks(d));
+  $('ancList').innerHTML=CASE.anchors.map((a,i)=>`<div class="anc"><select data-a="${i}" data-k="cat">${['外形','石配置','石留め','地金・立体','金具','その他'].map(x=>`<option${x===a.cat?' selected':''}>${x}</option>`).join('')}</select><textarea data-a="${i}" data-k="text" placeholder="例：センターは6本爪">${esc(a.text)}</textarea><select data-a="${i}" data-k="lock"><option value="1"${a.lock?' selected':''}>必ず保持</option><option value="0"${a.lock?'':' selected'}>変更可</option></select><button class="chipbtn" data-adel="${i}" aria-label="削除">×</button></div>`).join('')||'<p class="muted" style="margin:0">まだありません。</p>';
+  $('ancList').querySelectorAll('[data-a]').forEach(el=>el.onchange=()=>{const a=CASE.anchors[+el.dataset.a];a[el.dataset.k]=el.dataset.k==='lock'?el.value==='1':el.value;touch();});
+  $('ancList').querySelectorAll('[data-adel]').forEach(b=>b.onclick=()=>{CASE.anchors.splice(+b.dataset.adel,1);touch();});
+  attach3D($('viewer'));refresh3D();renderThumbs();
+}
+
+/* ① デザイン画像（生成は外部：Gemini／ChatGPT。アプリは依頼・取り込み・選択・読み取り） */
+const MANUS_HEAD=`【Manusへの依頼】画像生成機能を使って、次の指示どおりのジュエリー画像を作成してください。
+・調査、コード、Webページ、資料の作成は不要です。画像ファイル（PNG、長辺2000px程度）だけを納品してください。
+・添付画像がある場合は、指示のとおりに参照してください。
+・完成したら画像を1枚ずつダウンロードできる形で示してください。
+
+--- 指示 ---
+`;
+const SVCS={gemini:{name:'Gemini',sub:'Nano Banana',url:'https://gemini.google.com/app',tip:'おすすめ。3案をまとめて作るのが得意です'},flow:{name:'Google Flow',sub:'Nano Banana',url:'https://labs.google/fx/tools/flow',tip:'参考画像を材料にして作るのが得意です',how:'Flowでは画像の生成を選び、参考画像（デザイン画・希望デザイン・3D基準画像）を追加してから指示を貼り付けます。'},
+  chatgpt:{name:'ChatGPT',sub:'GPT Image',url:'https://chatgpt.com/',tip:'石だけ・地金だけなど、一部分の直しが得意です',how:'ChatGPTでは「画像を作成する」を選び、参考画像を添付してから指示を貼り付けます。'},
+  other:{name:'その他の画像AI',sub:'コピーのみ',url:'',tip:'指示文をコピーするだけ。お使いの画像AIに貼り付けます',how:'お使いの画像AIを別のタブで開き、参考画像を添付してから指示を貼り付けます。'}};
+/* 何をもとに画像を作るか */
+const BASES={sketch:{n:'デザイン画（手書き）',h:'②で取り込んだデザイン画のとおりの形を、写真のような<b>1枚の画像</b>にします。形・石の数と配置は絵のまま変えません。'},ref:{n:'希望デザイン画像（実物の写真など）',h:'カルテの「イメージに近い画像」や実物の写真をもとに、仕様に合わせた<b>1枚の画像</b>を作ります。'},d3:{n:'3D画像',h:'④仕様・3Dの立体をもとに、寸法どおりの<b>1枚の画像</b>を作ります。先に④で型・寸法・石を決めてください。'},text:{n:'言葉だけ（3案）',h:'雰囲気・ご要望の違う<b>3案を1枚</b>にまとめて作ります。'}};
+function isSingle(I=CASE.img){return I.base!=='text';}
+function canFinish(I=CASE.img){return !!I.pick||I.finals.length>0||isSingle(I);}
+
+const STYLES={
+  classic:{n:'クラシック',d:'端正な爪留め。王道の気品',en:'classic and timeless: refined prong settings, symmetrical, graceful proportions',
+    svg:'<ellipse cx="32" cy="34" rx="20" ry="8"/><path d="M24 27 L32 14 L40 27"/><path d="M32 14v-2"/><circle cx="32" cy="18" r="5"/>'},
+  modern:{n:'モダン',d:'直線とボリュームの現代的な造形',en:'modern and architectural: clean geometric lines, sculptural metal volume, minimal ornament',
+    svg:'<path d="M12 34 Q32 46 52 34"/><path d="M12 34 Q32 22 52 34"/><rect x="25" y="12" width="14" height="14" transform="rotate(45 32 19)"/>'},
+  botanical:{n:'ボタニカル',d:'花や葉のやわらかな曲線',en:'botanical: soft organic curves inspired by petals and leaves, delicate and feminine',
+    svg:'<ellipse cx="32" cy="36" rx="20" ry="7"/><circle cx="32" cy="20" r="4"/><path d="M32 16c-6-8-14-4-10 2s8 2 10 2"/><path d="M32 16c6-8 14-4 10 2s-8 2-10 2"/><path d="M28 24c-6 2-10 8-6 8s6-4 6-8"/>'},
+  antique:{n:'アンティーク',d:'ミル打ち・透かしの繊細な装飾',en:'antique-inspired: fine milgrain edges, openwork gallery, delicate engraving, heirloom feel',
+    svg:'<ellipse cx="32" cy="35" rx="20" ry="7" stroke-dasharray="1.5 2.5"/><path d="M22 28h20l-4-10H26z"/><circle cx="32" cy="15" r="4"/><circle cx="27" cy="23" r="1"/><circle cx="32" cy="23" r="1"/><circle cx="37" cy="23" r="1"/>'},
+  luxe:{n:'ラグジュアリー',d:'メレが輝く華やかなボリューム',en:'glamorous luxury: halo and pavé of melee diamonds, rich sparkle, generous presence',
+    svg:'<ellipse cx="32" cy="36" rx="20" ry="7"/><circle cx="32" cy="19" r="5"/><circle cx="32" cy="19" r="9" stroke-dasharray="1.2 2"/><path d="M14 38l1 1M18 41l1 1M46 41l1 1M50 38l1 1"/>'},
+  daily:{n:'デイリー',d:'引っかかりにくく、毎日着けられる',en:'understated everyday wear: low profile, smooth rounded surfaces, snag-free low bezel setting',
+    svg:'<ellipse cx="32" cy="32" rx="20" ry="8"/><ellipse cx="32" cy="24" rx="6" ry="3"/><path d="M26 24v3M38 24v3"/>'}};
+const METAL_EN={K10YG:'10K yellow gold (pale, soft yellow)',K10PG:'10K rose gold',K10WG:'10K white gold, rhodium plated',K18YG:'18K yellow gold',K18PG:'18K rose gold',K18WG:'18K white gold, rhodium plated',Pt950:'platinum 950',Pt900:'platinum 900',Pt850:'platinum 850'};
+const STONE_EN={'ダイヤモンド':'natural diamond','ルビー':'natural ruby','ブルーサファイア':'natural blue sapphire','ピンクサファイア':'natural pink sapphire','エメラルド':'natural emerald','スピネル':'natural spinel','モルガナイト':'natural morganite','アクアマリン':'natural aquamarine','タンザナイト':'natural tanzanite','ピンクトルマリン':'natural pink tourmaline','アメジスト':'natural amethyst','ガーネット':'natural garnet','シトリン':'natural citrine','ペリドット':'natural peridot'};
+const SHAPE_EN={'ラウンド':'round','オーバル':'oval','ペアシェイプ':'pear','クッション':'cushion','エメラルドカット':'emerald cut','マーキス':'marquise','ハートシェープ':'heart'};
+const HOUSE=`Photography: luxury fine-jewelry catalogue photograph for Ponte Vecchio, a Japanese fine-jewelry brand. Warm ivory seamless background, soft diffused daylight, gentle natural shadow, macro lens, crisp and realistic precious-metal reflections, natural gemstones with true color and fire. Elegant, refined and wearable.
+Rules: no hands, no text other than the requested labels, no logos, no props. Natural gemstones only (never lab-grown). It must be manufacturable: metal parts at least 1.2 mm thick, every stone visibly held by prongs or a bezel, realistic size and proportions.`;
+function migrateImg(c){const I=c.img=c.img||{};
+  if(!I.finals){I.finals=(I.vers||[]).map(x=>({id:x.id,img:x.img,at:x.at,pick:!!x.pick,kind:'final'}));delete I.vers;}
+  I.sheets=I.sheets||[];I.hq=I.hq||'';I.step=I.step||1;I.svc=I.svc||'gemini';I.style=I.style||'classic';I.pick=I.pick||'';I.add=I.add||'';I.fix=I.fix||'';I.refs=I.refs||[];I.sketches=I.sketches||[];I.sketchNote=I.sketchNote||'';if(!BASES[I.base])I.base=I.sketches.length?'sketch':'text';c.q=c.q||{};c.q.ov=c.q.ov||{};
+  if(I.read&&!I.read.rows)I.read=null;return c;}
+function itemEn(d){return {ring:'ring',pendant:'pendant necklace on a fine cable chain',pierce:'pair of matching stud earrings'}[d.item];}
+function centerEn(d,c=CASE){const cs=c.k.cs||{};
+  if(d.ctype==='dia')return `a natural round brilliant diamond of about ${(+d.ct).toFixed(2)} ct (about ${ctToMm(d.ct).toFixed(1)} mm) as the center stone`;
+  if(d.ctype==='color')return `a natural ${STONE_EN[d.cstone]?.replace('natural ','')||'gemstone'} as the center stone`;
+  if(d.ctype==='consign')return `the customer's own ${STONE_EN[cs.type]?.replace('natural ','')||'gemstone'} (${SHAPE_EN[cs.shape]||'fancy'} shape, about ${cs.L||cs.mm||'?'} × ${cs.W||cs.mm||'?'} mm) as the center stone`;
+  return 'no center stone';}
+function centerJp(d,c=CASE){const cs=c.k.cs||{};return d.ctype==='dia'?`天然ダイヤ ${(+d.ct).toFixed(2)}ct`:d.ctype==='color'?`天然${d.cstone}`:d.ctype==='consign'?`お預りの${cs.type}（${cs.shape}）`:'中石なし';}
+function KK(){return KARTES[CASE.kId]||CASE.k||{};}
+const HQ_CHIPS=['ご予算内に収める（石は小さめ・メレ控えめ）','普段使い向けに石座を低く','爪は6本でしっかり留める','腕幅は2mm以上（強度）','お預り石の形・大きさに合わせる','地金のボリュームを抑える','メレは中石の周りだけ','華やかさを一段上げる'];
+function budgetYen(){const k=KK();return k.bnote?0:+k.bmax||0;}
+function askJp(){const d=CASE.d,I=CASE.img,S=STYLES[I.style],k=KK(),m2=(k.moods||[]).filter(m=>m!==I.style&&STYLES[m])[0];
+  const A=[`${k.purpose?`${esc(k.purpose)}。`:''}${esc(k.req||'（ご要望の記入なし）')}`,(k.design||[]).length?`イメージ画像 ${k.design.length}枚${k.design.some(a=>a.note)?`（${k.design.map(a=>a.note).filter(Boolean).map(esc).join('／')}）`:''}`:'',k.cs?.has==='yes'&&k.cs.other?`お手持ち品：${esc(k.cs.other)}`:''].filter(Boolean);
+  const B=[`${esc(M.metals[d.metal]?.lbl||d.metal)}の${ITEMS_JP[d.item]}${d.item==='ring'?`（${d.size}号）`:''}・中石 ${esc(centerJp(d))}`,`雰囲気「${S.n}」${m2?`に「${STYLES[m2].n}」を少し`:''}`,I.hq?esc(I.hq):'',I.useBudget!==false&&budgetYen()?`ご予算 ${yen(budgetYen())} に見合う作り`:''].filter(Boolean);
+  return `<div class="asr"><span class="srcTag a">A</span><div>${A.map(x=>`<p>${x}</p>`).join('')}</div></div><div class="asr"><span class="srcTag b">B</span><div>${B.map(x=>`<p>${x}</p>`).join('')}</div></div>`;}
+function specLine(){const d=CASE.d;return `A ${itemEn(d)} in ${METAL_EN[d.metal]}, with ${centerEn(d)}${d.item==='ring'?`, Japanese ring size #${d.size}`:''}.`;}
+function wishLine(){const k=KK(),req=k.req||CASE.d.dir||'';let t='';
+  if(req)t+=`A. Customer's wishes (in Japanese, from the order sheet${k.purpose?`; occasion: ${k.purpose}`:''}): 「${req}」\n`;
+  if(k.cs?.has==='yes'&&k.cs.other)t+=`Customer's own items to reuse (in Japanese): 「${k.cs.other}」\n`;
+  return t;}
+function hqLine(){const I=CASE.img,b=budgetYen();let t='';
+  if((I.hq||'').trim())t+=`B. Corrections from the Ponte Vecchio design team (in Japanese; when they conflict with A, follow B): 「${I.hq.trim()}」\n`;
+  if(I.useBudget!==false&&b)t+=`Budget: about ${b.toLocaleString('en-US')} yen including tax. Keep the amount of metal, the number of melee diamonds and the complexity realistic for this budget.\n`;
+  return t;}
+function briefKey(){const k=KK(),I=CASE.img,d=CASE.d;return JSON.stringify([k.req,k.purpose,k.cs?.other,(k.design||[]).map(a=>a.note),I.hq,I.style,k.moods,d.item,d.metal,d.ctype,d.ct,d.cstone]);}
+function briefOK(){const I=CASE.img;return !!(I.brief&&I.briefKey===briefKey());}
+function briefLine(){return briefOK()?`Design brief (precise English rendering of A and B; follow it):\n${CASE.img.brief}\n`:'';}
+async function makeBrief(){const I=CASE.img,k=KK(),d=CASE.d,b=$('i_brief');if(!CAP.sample)return toast('この画面ではGemini連携が使えません');b.disabled=true;b.textContent='整えています…';
+  try{const out=await CAP.sample.json(`You are a senior fine-jewelry designer writing a brief for an image-generation model. Turn the notes below into a concrete visual design brief.
+Item: ${itemEn(d)} in ${METAL_EN[d.metal]}, ${centerEn(d)}.
+Style chosen: ${STYLES[I.style].en}
+A. Customer's own words (Japanese): ${k.req||'(none)'} / occasion: ${k.purpose||''} / own items: ${k.cs?.other||'(none)'} / what they like in their reference images: ${(k.design||[]).map(a=>a.note).filter(Boolean).join(' ; ')||'(none)'}
+B. Corrections from the design team (Japanese, these win over A): ${I.hq||'(none)'}
+Write 4-6 short English sentences describing visible features only: silhouette, setting type and height, band shape, where any small stones sit, surface finish, overall impression. Do not invent stone counts or sizes. It must be manufacturable. Natural stones only.
+Return JSON only: {"en":"the brief","jp":"the same brief in natural Japanese, for the staff to check"}`,{modelTier:'default'});
+    I.brief=String(out.en||'').trim();I.briefJp=String(out.jp||'').trim();I.briefKey=briefKey();touch();toast('デザイン指示を整えました。日本語で内容を確かめてください');
+  }catch(e){toast(e.code==='not_granted'?'Gemini連携が許可されていません':'整えられませんでした。時間をおいてお試しください');}
+  b.disabled=false;b.textContent='ご要望をデザイン指示に整える（Gemini）';}
+function moodLine(){const I=CASE.img,m2=(KK().moods||[]).filter(m=>m!==I.style&&STYLES[m])[0];return `Style: ${STYLES[I.style].en}.${m2?` With a light touch of: ${STYLES[m2].en}.`:''}`;}
+function refLine(){const R=CASE.img.refs||[],D=R.filter(a=>a.design&&!a.pdf);let t='';
+  if(D.length){const notes=D.map(a=>a.note).filter(Boolean);t+=`The attached reference images show designs the customer likes${notes.length?` (what they like, in Japanese: ${notes.map(n=>'「'+n+'」').join(' ')})`:''}. Follow their overall look and atmosphere while meeting the specification above; do not copy any brand's design exactly.\n`;}
+  if(R.some(a=>!a.design&&!a.pdf))t+='Other attached photos (the customer\'s own stone or jewelry) are for matching that stone or reusing those parts.\n';
+  return t;}
+function promptSheet(){const S=STYLES[CASE.img.style];
+  return `Design three different variations (A, B, C) of this piece of fine jewelry and show them side by side in ONE wide image with three equal panels.
+${specLine()}
+${moodLine()}
+${wishLine()}${hqLine()}${briefLine()}
+Make A, B and C clearly different from each other while all fitting the style and the wishes. Use the same three-quarter camera angle from about 30 degrees above for all three. Put a small letter A, B, C under each panel.
+${refLine()}
+${HOUSE}`.replace(/\n{2,}/g,'\n');}
+function designRefs(){return (CASE.img.refs||[]).filter(a=>a.design&&!a.pdf&&a.url);}
+function baseLine(){const I=CASE.img,b=I.base;
+  if(b==='sketch'){const n=I.sketches.length,note=(I.sketchNote||'').trim();
+    return `${n>1?`The ${n} attached images are hand-drawn design sketches`:'The attached image is a hand-drawn design sketch'} by the Ponte Vecchio designer. The sketch IS the design: turn exactly this design into one photorealistic product photograph.
+Keep the silhouette, the stone layout, the number of stones, the setting style and the proportions exactly as drawn. Do not redesign, simplify or add anything that is not in the sketch.
+Ignore the paper, pencil lines, shading strokes, handwriting and dimension notes: do not show them in the result.
+${note?`Designer's notes on the sketch (in Japanese): 「${note}」\n`:''}Camera: the same viewing angle as the main sketch, filling most of the frame.\n`;}
+  if(b==='ref'){const notes=designRefs().map(a=>a.note).filter(Boolean);
+    return `The attached image${designRefs().length>1?'s show':' shows'} the design the customer wants (a photograph of a real piece, or a picture they chose). Create one photorealistic product photograph of a piece that follows that design closely: the same overall shape, stone layout and atmosphere, adapted to the specification below.
+${notes.length?`What the customer likes in it (in Japanese): ${notes.map(n=>'「'+n+'」').join(' ')}\n`:''}If it shows another brand's product, do not reproduce logos, hallmarks or signature motifs.
+Camera: three-quarter view from about 30 degrees above, filling most of the frame.\n`;}
+  if(b==='d3')return `The attached image is a plain 3D CAD render of the piece with the correct real proportions. Turn it into one photorealistic product photograph of exactly this piece: the same shape, proportions, metal thickness and stone sizes, seen from the same angle.
+${exactLine()}`;
+  return '';}
+function promptSingle(){return `${baseLine()}${specLine()}
+${CASE.img.base==='sketch'?'':moodLine()}
+${wishLine()}${hqLine()}${briefLine()}${lockLine()}High resolution.
+${HOUSE}`.replace(/\n{2,}/g,'\n');}
+function promptStep2(){return isSingle()?promptSingle():promptSheet();}
+/* もとにする画像（自動生成に添付する／外部の画像AI用に保存する） */
+async function baseBlobs(){const I=CASE.img,out=[];let urls=[];
+  if(I.base==='sketch')urls=I.sketches.slice(0,4).map(a=>[a.url,a.name||'design_sketch.jpg']);
+  else if(I.base==='ref')urls=designRefs().slice(0,4).map(a=>[a.url,a.name||'reference.jpg']);
+  else if(I.base==='text')urls=I.refs.filter(a=>!a.pdf&&a.url).slice(0,4).map(a=>[a.url,a.name||'reference.jpg']);
+  for(const [u,n] of urls)out.push({name:n,blob:await (await fetch(u)).blob()});
+  if(I.base==='d3'){if(!R3.ok)throw Object.assign(new Error('3Dを表示できない端末です'),{code:'3d'});build3D(CASE.d);const u=snapView('iso',CASE.d.item,1400);lastKey='';if(!u)throw new Error('3D画像を作れませんでした');out.push({name:`3D基準_${CASE.no}.jpg`,blob:dataUrlToBlob(u)});}
+  return out;}
+function baseMissing(){const I=CASE.img;return I.base==='sketch'&&!I.sketches.length?'デザイン画がまだありません。②デザイン画で取り込んでください':I.base==='ref'&&!designRefs().length?'希望デザイン画像がまだありません。右下の「参考資料」に入れてください':'';}
+function exactLine(){const d=CASE.d,rows=sideRows(CASE).map(r=>({s:sideById(r.mid),r})).filter(x=>x.s&&+x.r.qty>0);let t='Exact specification (the image must match these numbers, they are the basis of the quotation):\n';
+  if(d.ctype==='dia')t+=`- Center stone: exactly ${geom(d).pcs>1?'one per earring':'1'} natural round diamond, ${ctToMm(d.ct).toFixed(1)} mm (${(+d.ct).toFixed(2)} ct).\n`;
+  else if(d.ctype==='color')t+=`- Center stone: exactly 1 ${STONE_EN[d.cstone]||'natural gemstone'}, about ${(+d.cmm).toFixed(1)} mm.\n`;
+  else if(d.ctype==='none')t+='- No center stone.\n';
+  if(rows.length)rows.forEach(x=>{t+=`- Side stones: exactly ${x.r.qty} ${x.s.kind==='dia'?'natural melee diamonds':STONE_EN[x.s.name]||'natural colored stones'} of ${x.s.mm} mm each (${x.r.set==='共有爪'?'shared-prong':x.r.set==='彫り留め'?'pavé / bead':x.r.set==='覆輪留め'?'bezel':x.r.set==='レール留め'?'channel':'prong'} setting). Count them: no more, no fewer.\n`;});
+  else t+='- No side stones at all: plain polished metal.\n';
+  if(d.item==='ring'&&d.model!=='free')t+=`- Band: ${(+d.w).toFixed(1)} mm wide and ${(+d.t).toFixed(1)} mm thick at the back of the finger, ring inner diameter ${geom(d).din.toFixed(1)} mm. Do not make the metal look heavier or wider than this.\n`;
+  return t;}
+function promptLock(){return `Two images are attached. Image 1 is the approved design. Image 2 is a plain 3D CAD render of the same piece with the correct real proportions.
+Recreate the design of image 1 as one single hero product photograph, three-quarter view from about 30 degrees above, but with the true proportions, metal thickness and stone sizes of image 2.
+${specLine()}
+${exactLine()}${lockLine()}High resolution.
+${HOUSE}`;}
+const PICK_POS={A:'left',B:'center',C:'right'};
+function lockLine(){const L=(CASE.anchors||[]).filter(a=>a.lock&&a.text);return L.length?`Must keep (in Japanese): ${L.map(a=>'「'+a.text+'」').join(' ')}\n`:'';}
+function promptFinal(){const I=CASE.img;
+  return `The attached image shows three design variations A, B and C. Take design ${I.pick} (the ${PICK_POS[I.pick]} one) and recreate exactly that design as one single hero product photograph, three-quarter view from about 30 degrees above, filling most of the frame.
+Keep its shape, stone layout, number of stones and proportions.
+${specLine()}
+${hqLine()}${lockLine()}${I.add?`Also apply this (in Japanese): 「${I.add}」\n`:''}High resolution.
+${HOUSE}`;}
+function promptMore(kind){const d=CASE.d;const v=kind==='side'?(d.item==='ring'?'a side profile view showing the height of the setting and the band':'a side profile view'):(d.item==='ring'?'a view from directly above, looking down onto the center stone':'a straight front view');
+  return `The attached image shows one piece of fine jewelry. Create ${v} of exactly the same piece: same design, metal, stones and proportions, same lighting and background.
+${HOUSE}`;}
+function promptFix(){const t=(CASE.img.fix||'').trim()||'（直したいところ）';
+  return `Edit the attached image. Change only this (instruction in Japanese): 「${t}」
+${lockLine()}Keep everything else exactly the same: metal, number, size and layout of the stones, setting, camera angle, lighting and background.
+All gemstones are natural. Keep it manufacturable.`;}
+async function copyAndOpen(text,preId){const S=SVCS[CASE.img.svc]||SVCS.gemini;if(S.wrap){text=S.wrap(text);const pre=preId&&$(preId);if(pre)pre.textContent=text;}
+  let ok=false;try{await navigator.clipboard.writeText(text);ok=true;}catch(e){}
+  if(!ok){const pre=preId&&$(preId);if(pre){pre.closest('details').open=true;selText(pre);}}
+  if(S.url){const a=document.createElement('a');a.href=S.url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();}
+  toast(ok?(S.url?`指示をコピーしました。${S.name}の入力欄に貼り付けて送ってください`:'指示をコピーしました。お使いの画像AIに貼り付けて送ってください'):'自動でコピーできませんでした。選択された指示文をコピー（Ctrl/⌘+C）してください');}
+function selText(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);}
+async function addSketches(files){const I=CASE.img;const room=4-I.sketches.length;if(room<=0)return toast('デザイン画は4枚までです');
+  for(const f of files.filter(f=>f&&f.type.startsWith('image/')).slice(0,room)){if(f.size>10*1024*1024){toast(`「${f.name}」は10MBを超えています`);continue;}
+    const r=await putImage(f,f.name||'デザイン画.png');I.sketches.push({id:newId('k'),url:r.url,name:r.name,imgId:r.id,local:r.local,at:new Date().toISOString()});}
+  if(I.sketches.length)I.base='sketch';touch();}
+function initSketch(){
+  bind('sk_note','c','img.sketchNote');
+  const drop=$('sk_drop');
+  ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>addSketches([...(e.dataTransfer?.files||[])]));
+  $('sk_in').onchange=e=>{const f=[...e.target.files];e.target.value='';addSketches(f);};
+}
+function renderSketch(){const I=CASE.img,k=KK();syncBinds();
+  $('sk_list').innerHTML=I.sketches.map((a,i)=>`<div class="att des"><img src="${esc(a.url)}" alt="${esc(a.name)}" data-lb="${esc(a.url)}" style="cursor:zoom-in"><span>デザイン画 ${i+1}</span><button type="button" data-skdel="${i}" aria-label="デザイン画 ${i+1} を削除">×</button></div>`).join('')||'<span class="muted">まだありません</span>';
+  $('sk_list').querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lightbox(b.dataset.lb));
+  $('sk_list').querySelectorAll('[data-skdel]').forEach(b=>b.onclick=async()=>{const a=I.sketches[+b.dataset.skdel];await dropImage({id:a.imgId,url:a.url,local:a.local});I.sketches.splice(+b.dataset.skdel,1);if(!I.sketches.length&&I.base==='sketch')I.base='text';touch();});
+  $('sk_karte').innerHTML=karteDetailHTML(k,'');$('sk_karte').querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lightbox(b.dataset.lb));
+  $('sk_next').innerHTML=checkHTML(I.sketches.length?[{lv:'OK',t:`デザイン画 ${I.sketches.length}枚を取り込みました`,s:'下のボタンで ③画像生成 に進むと、このデザイン画のとおりの形で画像を作ります。'}]:[{lv:'注意',t:'デザイン画がまだありません',s:'デザイン画なしでも進めます。③画像生成で「希望デザイン画像」「3D画像」「言葉だけ」から選んで作れます。'}]);}
+function initImage(){
+  $('i_cstone').innerHTML=COLORCENTER.map(s=>`<option>${s}</option>`).join('');
+  $('i_item').innerHTML=Object.entries(ITEMS_JP).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  bind('i_item','c','d.item');bind('i_metal','c','d.metal');bind('i_ctype','c','d.ctype');bind('i_ct','c','d.ct',true);bind('i_cstone','c','d.cstone');bind('i_hq','c','img.hq');bind('i_add','c','img.add');bind('i_fix','c','img.fix');
+  $('i_item').addEventListener('change',()=>{fixMetal();touch();});
+  $('i_styles').innerHTML=Object.entries(STYLES).map(([k,s])=>`<button class="stl" data-st="${k}"><svg viewBox="0 0 64 48" aria-hidden="true">${s.svg}</svg><b>${s.n}</b><small>${s.d}</small></button>`).join('');
+  $('i_styles').querySelectorAll('.stl').forEach(b=>b.onclick=()=>{CASE.img.style=b.dataset.st;touch();});
+  $('i_svc').innerHTML=Object.entries(SVCS).map(([k,s])=>`<button data-svc="${k}"><b>${s.name}</b><small>${s.sub}・${s.tip}</small></button>`).join('');
+  $('i_svc').querySelectorAll('button').forEach(b=>b.onclick=()=>{CASE.img.svc=b.dataset.svc;touch();});
+  $('i_base').innerHTML=Object.entries(BASES).map(([k,b])=>`<button data-v="${k}">${b.n}</button>`).join('');
+  $('i_base').querySelectorAll('button').forEach(b=>b.onclick=()=>{CASE.img.base=b.dataset.v;touch();});
+  $('i_dlBase').onclick=async()=>{const m=baseMissing();if(m)return toast(m);try{const L=await baseBlobs();if(!L.length)return toast('添付する画像はありません');for(const x of L)await saveFile(x.name,x.blob);}catch(e){toast('保存できませんでした：'+(e.message||''));}};
+  document.querySelectorAll('[data-istep]').forEach(b=>b.onclick=()=>{const s=+b.dataset.istep;if(s===2&&baseMissing())return toast(baseMissing());if(s===3&&!canFinish())return toast('先に3案から1つ選んでください');CASE.img.step=s;touch();window.scrollTo({top:0});});
+  $('i_hqChips').innerHTML=HQ_CHIPS.map(h=>`<button type="button">＋ ${h}</button>`).join('');
+  $('i_hqChips').querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{const I=CASE.img;I.hq=(I.hq||'').replace(/\s+$/,'');if(I.hq.includes(HQ_CHIPS[i]))return;I.hq+=(I.hq&&!/[。\n]$/.test(I.hq)?'。':'')+HQ_CHIPS[i];touch();});
+  $('i_useBud').onchange=e=>{CASE.img.useBudget=e.target.checked;touch();};
+  $('go1').onclick=()=>{const m=baseMissing();if(m)return toast(m);copyAndOpen(promptStep2(),'prompt1');};
+  $('go2').onclick=()=>{if(!CASE.img.pick)return toast('先に3案から1つ選んでください');copyAndOpen(promptFinal(),'prompt2');};
+  $('go3').onclick=()=>{if(!(CASE.img.fix||'').trim())return toast('直したいところを一文で書いてください');{$('prompt3').textContent=promptFix();copyAndOpen(promptFix(),'prompt3');}};
+  document.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{$('prompt3').textContent=promptMore(b.dataset.more);copyAndOpen(promptMore(b.dataset.more),'prompt3');});
+  document.querySelectorAll('#p-image [data-drop]').forEach(drop=>{
+    ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+    ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+    drop.addEventListener('drop',e=>{const f=[...(e.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(f)ingest(f,drop.dataset.drop);});});
+  document.querySelectorAll('#p-image [data-file]').forEach(inp=>inp.onchange=e=>{const f=e.target.files[0];if(f)ingest(f,inp.dataset.file);e.target.value='';});
+  document.addEventListener('paste',e=>{if(line!=='hq'||cur!=='image'||!CASE)return;const s=CASE.img.step;if(s!==2&&s!==3)return;
+    const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'));if(it){e.preventDefault();ingest(it.getAsFile(),s===2?'sheet':'final');}});
+  document.addEventListener('paste',e=>{if(line!=='hq'||cur!=='sketch'||!CASE)return;if(/^(TEXTAREA|INPUT)$/.test(document.activeElement?.tagName||''))return;const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'));if(it){e.preventDefault();addSketches([it.getAsFile()]);}});
+  $('refIn').onchange=async e=>{const files=[...e.target.files];e.target.value='';for(const f of files.slice(0,Math.max(0,8-CASE.img.refs.length))){const r=await putImage(f,f.name);r.pdf=/pdf/i.test(f.type);CASE.img.refs.push(r);}touch();};
+  $('go4').onclick=()=>{$('prompt3').textContent=promptLock();copyAndOpen(promptLock(),'prompt3');};
+  $('save3d').onclick=async()=>{if(!R3.ok)return toast('3Dを表示できない端末です');build3D(CASE.d);const u=snapView('iso',CASE.d.item,1400);lastKey='';if(!u)return toast('3D画像を作れませんでした');await saveFile(`3D基準_${CASE.no}.jpg`,dataUrlToBlob(u));};
+  $('i_brief').onclick=makeBrief;
+  $('gen1').onclick=()=>{const m=baseMissing();if(m)return toast(m);autoGen('gen1','sheet',promptStep2(),'base');};
+  $('gen2').onclick=()=>{if(!CASE.img.pick)return toast('先に3案から1つ選んでください');autoGen('gen2','final',promptFinal(),'sheet');};
+  $('gen3').onclick=()=>{if(!(CASE.img.fix||'').trim())return toast('直したいところを一文で書いてください');autoGen('gen3','final',promptFix(),'pick');};
+  $('gen4').onclick=()=>autoGen('gen4','final',promptLock(),'lock');
+  $('readImg').onclick=readImage;
+}
+/* Gemini API で画像を作り、そのまま取り込む（Chrome版） */
+async function autoGen(btnId,kind,prompt,att){if(!CAP.gen)return toast('Gemini APIが設定されていません');const b=$(btnId),t0=b.textContent,I=CASE.img;
+  const urls=[];
+  if(att==='sheet'){const sh=curSheet();if(sh)urls.push(sh.img.url);}
+  if(att==='pick'||att==='lock'){const f=I.finals.find(f=>f.pick);if(!f)return toast('採用中の画像がありません');urls.push(f.img.url);}
+  b.disabled=true;b.textContent='Geminiで作っています…（1分ほど）';
+  try{const blobs=[];if(att==='base')(await baseBlobs()).forEach(x=>blobs.push(x.blob));for(const u of urls)blobs.push(await (await fetch(u)).blob());
+    if(att==='lock'){if(!R3.ok)throw Object.assign(new Error('3Dを表示できない端末です'),{code:'3d'});build3D(CASE.d);const u=snapView('iso',CASE.d.item,1400);lastKey='';if(u)blobs.push(dataUrlToBlob(u));}
+    const out=await CAP.gen.image(prompt,blobs);
+    await ingest(new File([out],`gemini_${CASE.no}_${Date.now()}.png`,{type:out.type||'image/png'}),kind);
+  }catch(e){toast('作れませんでした：'+(e.message||e.code||''));}
+  b.disabled=false;b.textContent=t0;}
+async function ingest(file,kind){if(!file||!file.type.startsWith('image/'))return toast('画像ファイルを選んでください');if(file.size>15*1024*1024)return toast('15MBを超える画像は取り込めません');
+  const I=CASE.img;let direct=false;if(kind==='sheet'&&isSingle(I)){kind='final';direct=true;}
+  const img=await putImage(file,file.name||'pasted.png'),x={id:newId(kind==='sheet'?'s':'f'),img,at:new Date().toISOString()};if(direct){x.base=I.base;I.step=3;}
+  if(kind==='sheet'){I.sheets.unshift(x);I.sheetId=x.id;I.pick='';toast('3案を取り込みました。気に入った案を選んでください');}
+  else{x.pick=I.finals.filter(f=>f.pick).length<3;I.finals.unshift(x);toast(x.pick?'取り込んで採用しました':'取り込みました（採用は3枚までです）');}
+  touch();}
+function verHTML0(L){return L.length?`<div class="vers">${L.map(x=>`<div class="ver${x.pick?' pick':''}"><img src="${esc(x.img.url)}" alt="" loading="lazy"><div><span>${x.pick?'採用中':'未採用'}</span></div></div>`).join('')}</div>`:'<div class="empty">まだありません。左の手順で作った画像を貼り付けます。</div>';}
+function curSheet(){const I=CASE.img;return I.sheets.find(s=>s.id===I.sheetId)||I.sheets[0]||null;}
+function renderImage(){
+  if(!SVCS[CASE.img.svc])CASE.img.svc='gemini';
+  const I=CASE.img,d=CASE.d,S=SVCS[I.svc];
+  const single=isSingle(I),B=BASES[I.base];
+  const steps=[['依頼する',`${B.n.replace(/（.*/,'')}・${ITEMS_JP[d.item]}`],single?['画像を作る',I.finals.length?`${I.finals.length}枚`:'まだ']:['3案を作る',I.sheets.length?`${I.sheets.length}枚${I.pick?`・案${I.pick}を選択`:''}`:'まだ'],['仕上げる',I.finals.length?`採用 ${I.finals.filter(f=>f.pick).length}枚`:'まだ'],['見積に渡す',I.read?.sent?'送信済み':I.read?'読み取り済み':'まだ']];
+  $('iStep').innerHTML=steps.map(([t,s],i)=>`<li class="${I.step===i+1?'on':I.step>i+1?'done':''}"><button data-go-s="${i+1}"><i>${i+1}</i><span><b>${t}</b><small>${esc(s)}</small></span></button></li>`).join('');
+  $('iStep').querySelectorAll('[data-go-s]').forEach(b=>b.onclick=()=>{const s=+b.dataset.goS;if(s===2&&baseMissing())return toast(baseMissing());if(s===3&&!canFinish())return toast('先に3案から1つ選んでください');I.step=s;touch();});
+  document.querySelectorAll('#p-image .ipanel').forEach(p=>p.hidden=+p.dataset.s!==I.step);
+  $('i_metal').innerHTML=METAL_BY_ITEM[d.item].map(m=>`<option value="${m}">${M.metals[m]?.lbl||m}（${m}）</option>`).join('');
+  syncBinds();
+  $('i_ctL').hidden=d.ctype!=='dia';$('i_csL').hidden=d.ctype!=='color';
+  $('i_styles').querySelectorAll('.stl').forEach(b=>b.classList.toggle('on',b.dataset.st===I.style));
+  $('i_summary').innerHTML=askJp();
+  $('i_base').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.v===I.base);const n=b.dataset.v==='sketch'?I.sketches.length:b.dataset.v==='ref'?designRefs().length:null;b.textContent=BASES[b.dataset.v].n+(n!=null?`：${n}枚`:'');});
+  $('i_baseHint').innerHTML=B.h+(baseMissing()?`<br><b style="color:#b3261e">${baseMissing()}</b>`:'');
+  $('i_next1').textContent=single?'次へ：画像を作る':'次へ：3案を作る';$('i_h2a').textContent=single?`${B.n.replace(/（.*/,'')}から画像を作る`:'3案を作る';$('i_h2b').textContent=single?'できた画像':'できた3案';
+  $('i_dlBase').hidden=!(I.base==='d3'||(I.base==='sketch'&&I.sketches.length)||(I.base==='ref'&&designRefs().length));$('i_dlBase').textContent=I.base==='d3'?'3D基準画像を保存（添付用）':'添付する画像を保存';
+  {const g1=$('go1'),g2=$('go2');if(g1.lastChild.nodeType===3)g1.lastChild.textContent=S.url?'を開く':'に貼り付ける';if(g2.lastChild.nodeType===3)g2.lastChild.textContent=S.url?'を開く':'に貼り付ける';}
+  $('i_brief').hidden=!CAP.sample;['gen1','gen2','gen3','gen4'].forEach(i=>{const e=$(i);if(e)e.hidden=!CAP.gen;});$('i_briefOut').innerHTML=I.brief?(briefOK()?`<p class="brf">${esc(I.briefJp||I.brief)}</p><p class="muted" style="margin:0">AとBを具体的な形の言葉に直したものです。この内容が英語で指示文に入ります。違っていれば、補正を書き足して整え直します。</p>`:'<p class="muted" style="margin:0">内容が変わりました。もう一度「整える」を押すと指示文に反映されます（押さなければ、AとBの原文だけで依頼します）。</p>'):'<p class="muted" style="margin:0">押すと、お客様の言葉と本社の補正を、石座の形・腕の形などの具体的な指示に直します。ご要望に近い画像が出やすくなります。</p>';
+  $('i_hqChips').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',(I.hq||'').includes(HQ_CHIPS[i])));
+  {const k=KK(),mc=(typeof K_MCOL!=='undefined'?K_MCOL:[]).find(x=>x[0]===(k.metalColor??'')),R2=(l,v)=>v?`<tr><th>${l}</th><td>${v}</td></tr>`:'';
+   $('i_karte').innerHTML=`<div class="kreq"><p>${esc(k.req||'（ご要望の記入なし）')}</p></div>
+    <table class="kv">${R2('ジュエリー',`${ITEMS_JP[k.item]||''}${k.item==='ring'?`・${+k.size?k.size+'号':'サイズ未計測'}`:''}・${esc(k.purpose||'')}`)}${R2('お好きな雰囲気',(k.moods||[]).map(m=>STYLES[m]?.n).filter(Boolean).join('・'))}
+     ${R2('地金',esc(k.metal==='未定'?'おまかせ':k.metal||''))}${R2('中石',esc(k.stone||'')+(k.stoneNote?`（${esc(k.stoneNote)}）`:''))}${R2('お手持ち品',k.cs?.has==='yes'?esc(k.cs.other||'あり'):'')}${R2('ご予算',k.bnote?'ご相談':+k.bmax?yen(+k.bmax)+'まで':'')}</table>
+    ${(k.design||[]).length?`<div class="kdes">${k.design.map(a=>`<figure><button data-lb="${esc(a.url)}"><img src="${esc(a.url)}" alt=""></button>${a.note?`<figcaption>${esc(a.note)}</figcaption>`:''}</figure>`).join('')}</div>`:''}`;
+   $('i_karte').querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lightbox(b.dataset.lb));
+   $('i_moodK').textContent=(k.moods||[]).length?`カルテ：${k.moods.map(m=>STYLES[m]?.n).filter(Boolean).join('・')}`:'';
+   const b=budgetYen();$('i_budTxt').textContent=b?yen(b)+'まで':'ご相談';$('i_useBud').checked=I.useBudget!==false&&!!b;$('i_useBud').disabled=!b;}
+  $('i_svc').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.svc===I.svc));
+  document.querySelectorAll('#p-image .svcName').forEach(e=>e.textContent=S.name);$('manusHint').hidden=!CAP.gen;
+  $('refHint').textContent=(I.base==='sketch'?'デザイン画（手書き）を必ず添付します。':I.base==='ref'?'希望デザイン画像を必ず添付します。':I.base==='d3'?'保存した3D基準画像を必ず添付します。':I.refs.length?'参考画像がある場合は、一緒に添付します。':'')+(S.how||'');
+  const W=t=>S.wrap?S.wrap(t):t;$('prompt1').textContent=W(promptStep2());$('prompt2').textContent=I.pick?W(promptFinal()):'（3案から1つ選ぶと表示されます）';
+  const sh=curSheet();
+  $('sheetBox').innerHTML=sh?`<p class="muted" style="margin:0">気に入った案を押して選びます。</p><div class="sheet"><img src="${esc(sh.img.url)}" alt="3案">${['A','B','C'].map(k=>`<button data-pk="${k}" class="${I.pick===k?'on':''}"><span>案${k}</span></button>`).join('')}</div>
+    ${I.sheets.length>1?`<div class="sheets">${I.sheets.map(s=>`<button data-sh="${s.id}" class="${s.id===sh.id?'on':''}"><img src="${esc(s.img.url)}" alt=""></button>`).join('')}</div>`:''}
+    <div class="btns">${I.pick?`<button class="btn gold" data-istep2="3">案${I.pick}で仕上げへ</button>`:''}<button class="btn ghost sm" data-shdel="${sh.id}">この3案を削除</button></div>
+    <p class="muted" style="margin:0">気に入る案がなければ、「頼む内容」を変えて作り直すか、生成画面で「もう少し〇〇に」と頼んだ結果を貼り付けてください。</p>`
+    :'<div class="empty">まだありません。左の手順で作った画像を貼り付けます。</div>';
+  if(single)$('sheetBox').innerHTML=`<p class="muted" style="margin:0">この方法では<b>1枚の画像</b>ができます。取り込むと、そのまま「仕上げる」の<b>仕上がった画像</b>に入ります。</p>${verHTML0(I.finals.slice(0,3))}${I.finals.length?'<div class="btns"><button class="btn gold" data-istep2="3">仕上げへ</button></div>':''}`;
+  $('sheetBox').querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{I.pick=b.dataset.pk;touch();});
+  $('sheetBox').querySelectorAll('[data-sh]').forEach(b=>b.onclick=()=>{I.sheetId=b.dataset.sh;I.pick='';touch();});
+  $('sheetBox').querySelectorAll('[data-istep2]').forEach(b=>b.onclick=()=>{I.step=3;touch();window.scrollTo({top:0});});
+  $('sheetBox').querySelectorAll('[data-shdel]').forEach(b=>b.onclick=async()=>{if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='削除しますか？';setTimeout(()=>{b.dataset.arm='';b.textContent='この3案を削除';},2500);return;}
+    const i=I.sheets.findIndex(s=>s.id===b.dataset.shdel);await dropImage(I.sheets[i].img);I.sheets.splice(i,1);I.sheetId=I.sheets[0]?.id||null;I.pick='';touch();});
+  $('pickBox').innerHTML=single&&!I.pick?'<div class="empty">デザイン画などから直接作った画像は、右の「仕上がった画像」に入っています。直したいところは、下の「直したいところ」に一文で書いて作り直します。</div>':sh&&I.pick?`<div class="pickprev" style="background-image:url('${esc(sh.img.url)}');background-position:${{A:'0%',B:'50%',C:'100%'}[I.pick]} 50%"><span>案${I.pick}</span></div>`:'<div class="empty">3案から選ぶと表示されます。</div>';
+  const pub=PROPS[CASE.id],pubIds=pub?JSON.stringify(pub):'';
+  const verHTML=(L,sel)=>L.length?L.map(x=>`<div class="ver${x.pick?' pick':''}"><img src="${esc(x.img.url)}" alt="" loading="lazy"><div>${sel?`<button data-vp="${x.id}">${x.pick?'採用中':'採用'}</button> <button data-vd="${x.id}" aria-label="削除">×</button>`:'<span>採用中</span>'}</div></div>`).join(''):'';
+  $('vers').innerHTML=verHTML(I.finals,true)||'<p class="muted" style="margin:0;grid-column:1/-1">まだありません。</p>';
+  $('vers4').innerHTML=verHTML(I.finals.filter(f=>f.pick),false)||'<p class="muted" style="margin:0;grid-column:1/-1">採用中の画像がありません。「仕上げる」で採用してください。</p>';
+  $('vers').querySelectorAll('[data-vp]').forEach(b=>b.onclick=()=>{const x=I.finals.find(v=>v.id===b.dataset.vp);if(!x.pick&&I.finals.filter(f=>f.pick).length>=3)return toast('採用は3枚までです。先にどれかを外してください');x.pick=!x.pick;touch();});
+  $('vers').querySelectorAll('[data-vd]').forEach(b=>b.onclick=async()=>{const i=I.finals.findIndex(v=>v.id===b.dataset.vd),x=I.finals[i];
+    if(pubIds&&x.img.id&&pubIds.includes(x.img.id))return toast('お客様の見積書に載っている画像は削除できません');
+    if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='削除？';setTimeout(()=>{b.dataset.arm='';b.textContent='×';},2500);return;}
+    await dropImage(x.img);I.finals.splice(i,1);touch();});
+  const KK0=KARTES[CASE.kId],miss=(KK0?.design||[]).filter(a=>!I.refs.some(r=>r.url===a.url));
+  $('refImp').hidden=!miss.length;$('refImp').textContent=`カルテの希望デザイン画像を取り込む（${miss.length}枚）`;$('refImp').onclick=()=>{miss.forEach(a=>I.refs.unshift(Object.assign({},a,{design:true,fromK:true})));touch();toast('取り込みました');};
+  $('refs').innerHTML=I.refs.map((a,i)=>`<div class="att${a.design?' des':''}">${a.pdf?'<div class="doc">PDF</div>':`<img src="${esc(a.url)}" alt="${esc(a.name)}">`}<span>${esc(a.name)}</span><button type="button" data-rdel="${i}" aria-label="${esc(a.name)}を削除">×</button></div>`).join('')||'<span class="muted">なし</span>';
+  $('refs').querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{const a=I.refs[+b.dataset.rdel];if(!a.fromK)await dropImage(a);I.refs.splice(+b.dataset.rdel,1);touch();});
+  $('readImg').disabled=!CAP.sample||!I.finals.some(f=>f.pick);
+  renderRead();}
+async function readImage(){
+  const I=CASE.img,picks=I.finals.filter(f=>f.pick).slice(0,3);
+  if(!picks.length)return toast('採用中の画像がありません');
+  $('readOut').innerHTML='<p class="muted" style="margin:0">読み取っています…（30秒ほど）</p>';$('readImg').disabled=true;
+  try{const blobs=[];for(const p of picks){blobs.push(await (await fetch(p.img.url)).blob());}
+    const d=CASE.d,scale=d.item==='ring'?`The ring's inner diameter is about ${geom(d).din.toFixed(1)} mm; use it as the scale.`:geom(d).cmm?`The center stone is about ${geom(d).cmm.toFixed(1)} mm; use it as the scale.`:'Use typical fine-jewelry proportions as the scale.';
+    const out=await CAP.sample.json(`You are a fine-jewelry estimator. The attached images show ONE piece from different angles. ${scale}
+Count and measure what is visible. Return JSON only:
+{"metal":"one of K10YG,K10PG,K10WG,K18YG,K18PG,K18WG,Pt950 (the closest)","center":{"present":true|false,"kind":"diamond|colored","color":"Japanese gem name or ''","diameter_mm":number,"prongs":number},"sides":[{"kind":"diamond|colored","color":"Japanese gem name or ''","diameter_mm":number,"count":number,"setting":"共有爪|爪留（独立爪）|彫り留め|覆輪留め|レール留め","where":"short Japanese, e.g. 中石の周り"}],"band_width_mm":number,"notes":"one short Japanese sentence about what is uncertain"}
+Estimate stones hidden on the back by symmetry and say so in notes.`,{images:blobs,modelTier:'default'});
+    const rows=[];
+    if(out.center?.present&&+out.center.diameter_mm>0)rows.push({k:'center',on:true,kind:out.center.kind==='diamond'?'dia':'color',color:out.center.color||'',mm:+(+out.center.diameter_mm).toFixed(1),count:1,set:`${out.center.prongs||''}本爪`,where:'中石'});
+    (out.sides||[]).forEach(s=>{if(+s.count>0)rows.push({k:'side',on:true,kind:s.kind==='diamond'?'dia':'color',color:s.color||'',mm:+(+s.diameter_mm||1.2).toFixed(1),count:Math.round(+s.count),set:SETS.includes(s.setting)?s.setting:'共有爪',where:s.where||''});});
+    I.read={at:new Date().toISOString(),rows,metal:METAL_BY_ITEM[d.item].includes(out.metal)?out.metal:'',band:+out.band_width_mm||0,notes:out.notes||'',sent:false};touch();
+  }catch(e){$('readOut').innerHTML=`<div class="chk 注意"><b>未実施</b><div>読み取れませんでした（${esc(e.code||e.message||'')}）。<small>${e.code==='not_granted'?'Gemini APIキーが設定されていません（設置手順書 4）。':'時間をおいてもう一度お試しください。'}</small></div></div>`;$('readImg').disabled=false;}}
+function renderRead(){
+  const r=CASE.img.read,d=CASE.d;
+  if(!r){$('readOut').innerHTML=CAP.sample?'<div class="empty">左のボタンで読み取ると、ここに石の数・大きさが並びます。</div>':'<div class="note">この画面ではGemini連携が使えません。画像を見ながら「見積」で中石・脇石を入れてください。</div>';return;}
+  const opt=(arr,v)=>arr.map(x=>`<option${x===v?' selected':''}>${x}</option>`).join('');
+  $('readOut').innerHTML=`<table class="rd"><tr><th></th><th>石</th><th>径 mm</th><th>個数</th><th>目安</th></tr>${r.rows.map((x,i)=>`<tr><td><input type="checkbox" data-ri="${i}" data-rk="on" ${x.on?'checked':''} aria-label="見積に含める"></td>
+      <td><b>${x.k==='center'?'中石':'脇石'}</b> <select data-ri="${i}" data-rk="kind" style="width:auto"><option value="dia"${x.kind==='dia'?' selected':''}>ダイヤ</option><option value="color"${x.kind==='color'?' selected':''}>色石</option></select>${x.kind==='color'?` <select data-ri="${i}" data-rk="color" style="width:auto">${opt(COLORCENTER.concat(M.sides.filter(s=>s.kind==='color').map(s=>s.name)).filter((v,j,a)=>a.indexOf(v)===j),x.color)}</select>`:''}<div class="muted">${esc(x.where)}${x.k==='side'?'・'+esc(x.set):''}</div></td>
+      <td><input type="number" step="0.1" min="0.5" data-ri="${i}" data-rk="mm" value="${x.mm}" style="width:70px"></td>
+      <td>${x.k==='center'?'1':`<input type="number" step="1" min="1" data-ri="${i}" data-rk="count" value="${x.count}" style="width:64px">`}</td>
+      <td class="muted">${x.kind==='dia'?`約${f2(mmToCt(x.mm)*(x.k==='center'?1:x.count))}ct`:''}</td></tr>`).join('')}</table>
+    ${r.metal&&r.metal!==d.metal?`<div class="chk 注意"><b>地金</b><div>画像の色は${esc(M.metals[r.metal]?.lbl||r.metal)}に見えます（依頼は${esc(d.metal)}）。<small>見積には依頼の地金を使います。</small></div></div>`:''}
+    <p class="muted" style="margin:0">${esc(r.notes)}（${new Date(r.at).toLocaleString('ja-JP')}）</p>
+    ${d.model==='halo'&&r.rows.some(x=>x.k==='side'&&x.on)?'<div class="chk 注意"><b>ハロー</b><div>ハロー型は取り巻きのメレを自動で数えます。<small>取り巻き分の行はチェックを外してから送ってください。</small></div></div>':''}
+    <div class="btns"><button class="btn gold" id="sendEst">${r.sent?'もう一度送って ④仕様・3Dへ':'石の内容を見積に送って ④仕様・3Dへ'}</button></div>
+    <p class="muted" style="margin:0">中石の大きさと脇石の行が見積に入ります。地金重量は「仕様・3D」または見積で入れます。</p>`;
+  $('readOut').querySelectorAll('[data-ri]').forEach(el=>el.onchange=()=>{const x=r.rows[+el.dataset.ri],k=el.dataset.rk;x[k]=k==='on'?el.checked:(k==='mm'||k==='count')?+el.value:el.value;touch();});
+  $('sendEst').onclick=()=>{
+    r.rows.filter(x=>x.on).forEach(x=>{
+      if(x.k==='center'){if(x.kind==='dia'){d.ctype=d.ctype==='consign'?'consign':'dia';if(d.ctype==='dia')d.ct=Math.min(3,Math.max(0.1,+f2(mmToCt(x.mm))));}else if(d.ctype!=='consign'){d.ctype='color';if(COLORCENTER.includes(x.color))d.cstone=x.color;d.cmm=x.mm;}}
+    });
+    const sides=r.rows.filter(x=>x.on&&x.k==='side').map(x=>{let m=x.kind==='color'?M.sides.find(s=>s.kind==='color'&&s.name===x.color):null;m=m||nearestSide(x.mm,x.kind);return m?{mid:m.id,qty:x.count,set:x.set}:null;}).filter(Boolean);
+    if(r.rows.some(x=>x.k==='side'))CASE.q.sides=sides;
+    r.sent=true;touch();toast('見積に送りました。④仕様・3Dで型と寸法を合わせ、重量を⑤見積に渡してください');go('design');};}
+
+/* ④ 見積 */
+function initEst(){
+  bind('q_w','c','q.w',true);
+  $('q_ovAll').onclick=()=>{const ov=CASE.q.ov||{},ks=Object.keys(ov).filter(k=>numOr(ov[k])!=null);if(!ks.length)return toast('この案件で入力した単価はありません');let n=0;ks.forEach(k=>{if(mSet(k,+ov[k],true)){delete ov[k];n++;}});saveMaster();touch();toast(`${n}件の単価を原価マスターに反映しました`);};
+  $('q_add').onclick=()=>{CASE.q.sides.push({mid:$('q_addSel').value,qty:10,set:'共有爪'});touch();};
+  $('q_addx').onclick=()=>{CASE.q.extras.push({n:'',v:''});touch();};
+  $('q_issue').onclick=issueQuote;
+}
+function renderEst(){
+  renderTarget('q_target',true);
+  CASE.q.ov=CASE.q.ov||{};
+  {const sel=$('q_addSel'),v=sel.value;sel.innerHTML=M.sides.map(s=>{const pc=sidePc(s);return `<option value="${s.id}">${esc(s.name)} Ø${s.mm}mm（${pc!=null?yen(pc)+'/個':'単価未入力'}）</option>`;}).join('');if(v)sel.value=v;}
+  const d=CASE.d,Q=quoteCalc(),P=Q.price,G=Q.G;
+  $('q_metalShow').value=`${d.metal}（${Q.gHas?yen(Q.g)+'/g':'g単価 未入力'}・ロス${(Q.loss*100).toFixed(0)}%）`;
+  $('q_wHint').innerHTML=`3D推定 ${f2(G.wTotal)}g　<button class="chipbtn" id="q_use3d">推定値を入れる</button>${+CASE.q.w>0&&Math.abs(+CASE.q.w-G.wTotal)/G.wTotal>0.25?'　<span class="pill p-warn">推定と25%以上ちがいます</span>':''}`;
+  $('q_use3d').onclick=()=>{CASE.q.w=+f2(G.wTotal);touch();};
+  // 中石
+  const c=CASE.q.center;
+  if(d.ctype==='dia'){const guide=centerGuide(+d.ct,c.grade);
+    $('q_center').innerHTML=`<h3 style="margin-bottom:0">中石（ダイヤ）</h3><div class="fr3"><label class="f">重さ（ct）<input class="big" type="number" step="0.01" min="0.05" id="qc_ct" value="${d.ct}"></label><label class="f">グレード<select id="qc_g">${M.grades.map((g,i)=>`<option value="${i}"${i===+c.grade?' selected':''}>${g}</option>`).join('')}</select></label><label class="f">ct単価（円/ct）<input class="big" type="number" step="1000" min="0" id="qc_u" value="${c.unit??''}"></label></div>
+      <p class="muted" style="margin:0">目安 ${yen(guide)}/ct（仮値）<button class="chipbtn" id="qc_guide">目安を入れる</button>　中石代 ${c.unit?yen(c.unit*d.ct*G.pcs):'—'}${G.pcs>1?'（2石）':''}</p>`;
+    $('qc_ct').onchange=e=>{d.ct=Math.max(0.05,+e.target.value||0.05);touch();};$('qc_g').onchange=e=>{c.grade=+e.target.value;touch();};$('qc_u').onchange=e=>{c.unit=e.target.value===''?'':+e.target.value;touch();};
+    $('qc_guide').onclick=()=>{c.unit=guide;touch();};}
+  else if(d.ctype==='color'){$('q_center').innerHTML=`<h3 style="margin-bottom:0">中石（${esc(d.cstone)} Ø${(+d.cmm).toFixed(1)}mm）</h3><label class="f">中石の仕入原価（1石・円）<input class="big" type="number" step="1000" min="0" id="qc_cost" value="${c.cost??''}"></label>`;$('qc_cost').onchange=e=>{c.cost=e.target.value===''?'':+e.target.value;touch();};}
+  else $('q_center').innerHTML=d.ctype==='consign'?`<div class="note">中石はお預り石（${esc(CASE.k.cs.type)}）のため石代は計上しません。</div>`:'';
+  // 脇石
+  const rows=sideRows();
+  $('q_sides').innerHTML=rows.length?`<table><tr><th>石</th><th class="n">個数</th><th class="n">1個単価</th><th class="n">合計ct</th><th class="n">ct単価（逆算）</th><th class="n">金額</th><th></th></tr>${rows.map(r=>{const s=sideById(r.mid);if(!s)return '';const n=+r.qty||0,i=CASE.q.sides.indexOf(r);
+    const pc=sidePc(s)||0;return `<tr><td>${esc(s.name)} Ø${s.mm}mm${r.auto?'<div class="muted">ハローの取り巻き（自動）</div>':`<div><select data-si="${i}" data-k="set" style="margin-top:4px">${SETS.map(x=>`<option${x===r.set?' selected':''}>${x}</option>`).join('')}</select></div>`}</td>
+    <td class="n">${r.auto?n:`<input type="number" min="1" step="1" data-si="${i}" data-k="qty" value="${r.qty}" style="width:64px">`}</td><td class="n">${sidePc(s)!=null?yen(pc):'<span class="pill p-mis">未入力</span>'}</td><td class="n">${f3(s.ct*n)}ct</td><td class="n">${yen(pc/s.ct)}/ct</td><td class="n">${yen(pc*n)}</td><td>${r.auto?'':`<button class="chipbtn" data-sdel="${i}">削除</button>`}</td></tr>`;}).join('')}</table>`:'<p class="muted" style="margin:0">脇石なし</p>';
+  $('q_sides').querySelectorAll('[data-si]').forEach(el=>el.onchange=()=>{const r=CASE.q.sides[+el.dataset.si];r[el.dataset.k]=el.dataset.k==='qty'?Math.max(1,+el.value||1):el.value;touch();});
+  $('q_sides').querySelectorAll('[data-sdel]').forEach(b=>b.onclick=()=>{CASE.q.sides.splice(+b.dataset.sdel,1);touch();});
+  $('q_extras').innerHTML=CASE.q.extras.length?'<table>'+CASE.q.extras.map((x,i)=>`<tr><td><input type="text" data-x="${i}" data-k="n" value="${esc(x.n)}" placeholder="例：ミル打ち"></td><td class="n"><input type="number" data-x="${i}" data-k="v" value="${x.v??''}" placeholder="原価" style="width:110px"></td><td><button class="chipbtn" data-xdel="${i}">削除</button></td></tr>`).join('')+'</table>':'<p class="muted" style="margin:0">なし</p>';
+  $('q_extras').querySelectorAll('[data-x]').forEach(el=>el.onchange=()=>{CASE.q.extras[+el.dataset.x][el.dataset.k]=el.dataset.k==='v'?(el.value===''?'':+el.value):el.value;touch();});
+  $('q_extras').querySelectorAll('[data-xdel]').forEach(b=>b.onclick=()=>{CASE.q.extras.splice(+b.dataset.xdel,1);touch();});
+  // この案件で使う単価（原価マスターが未入力でも、ここで入れて見積を出せる）
+  {const ov=CASE.q.ov,miss=Q.used.filter(u=>u.o==null&&u.m==null).length,nOv=Q.used.filter(u=>u.o!=null).length;
+   const fmt=(u,v)=>v==null?'<span class="pill p-mis">未入力</span>':u.kind==='rate'?String(v):yen(v);
+   $('q_costs').innerHTML=`<p class="muted" style="margin:0 0 8px">${miss?`<b style="color:#b3261e">未入力の単価が ${miss}件あります（0円で計算中）。</b>`:'この見積に必要な単価はそろっています。'}「この案件の値」に入れた数字は、原価マスターより優先して使われます。</p>
+    <table><tr><th>項目</th><th class="n">原価マスター</th><th class="n">この案件の値</th><th></th></tr>${Q.used.map((u,i)=>`<tr><td>${esc(u.label)}</td><td class="n">${fmt(u,u.m)}</td><td class="n"><input type="number" step="${u.kind==='rate'?0.01:10}" min="0" data-ov="${i}" value="${u.o??''}" placeholder="${u.m==null?'入力':'変更なし'}" style="width:110px"></td><td>${u.o!=null?`<button class="chipbtn" data-ovm="${i}">マスターに反映</button>`:''}</td></tr>`).join('')}</table>`;
+   $('q_costs').querySelectorAll('[data-ov]').forEach(el=>el.onchange=()=>{const u=Q.used[+el.dataset.ov];if(el.value===''||isNaN(+el.value))delete ov[u.path];else ov[u.path]=+el.value;touch();});
+   $('q_costs').querySelectorAll('[data-ovm]').forEach(b=>b.onclick=()=>{const u=Q.used[+b.dataset.ovm];if(mSet(u.path,u.o,true)){delete ov[u.path];saveMaster();touch();toast(`原価マスターに反映しました：${u.label}`);}else toast('原価マスターに反映できませんでした');});
+   $('q_ovAll').disabled=!nOv;$('q_ovAll').textContent=nOv?`入力した単価 ${nOv}件をすべて原価マスターに反映`:'入力した単価をすべて原価マスターに反映';}
+  // 内訳
+  $('q_tbl').innerHTML='<table><tr><th>区分</th><th>項目・計算式</th><th class="n">金額</th><th></th></tr>'+Q.L.map(x=>`<tr><td>${x.grp}</td><td>${esc(x.n)}<div class="muted">${esc(x.f)}</div></td><td class="n">${yen(x.v)}</td><td>${pill(x.src)}</td></tr>`).join('')+`<tr class="tot"><td colspan="2">総原価</td><td class="n">${yen(Q.total)}</td><td></td></tr></table>`;
+  // 価格
+  const ctS=Q.sides.reduce((a,s)=>a+s.ctT,0),nS=Q.sides.reduce((a,s)=>a+s.qty,0);
+  $('q_price').innerHTML=`<div class="l">販売価格（税込）</div><div class="v">${P?yen(P.inc):'—'}</div><div class="s">税抜 ${P?yen(P.pre):'—'}・消費税 ${P?yen(P.inc-P.pre):'—'}・原価 ${yen(Q.total)}・粗利率 ${P?(P.gm*100).toFixed(1)+'%':'—'}</div>
+    <div class="basis"><div><small>地金</small><b>${d.metal} ${f2(Q.w)}g</b>${Q.wIn?'':'<small>3D推定のまま</small>'}</div><div><small>中石</small><b>${Q.center.type==='dia'?'D'+(+d.ct).toFixed(2)+'ct':Q.center.type==='color'?esc(d.cstone):Q.center.type==='consign'?'お預り石':'なし'}</b></div><div><small>脇石</small><b>${nS?nS+'個 '+f3(ctS)+'ct':'なし'}</b></div></div>
+    <div class="s" style="margin-top:6px">内金（${Math.round(M.depositRate*100)}%）${P?yen(depositOf(P.inc)):'—'}${+CASE.k.bmax>0&&P?`　ご予算 ${yen(+CASE.k.bmax)} ${P.inc>+CASE.k.bmax?'<b style="color:#FFD7A8">を超えています</b>':'以内'}`:''}</div>`;
+  // 確認
+  const R=[];const ng=checks(d).filter(x=>x.lv==='NG');
+  if(!Q.wIn)R.push({lv:'NG',t:'地金重量を入れてください',s:'3D推定値を使う場合も「推定値を入れる」で確定させます。'});
+  if(!Q.gHas)R.push({lv:'NG',t:`${Q.metalKey}のg単価を入れてください`,s:'下の「この案件で使う単価」に本日の相場を入れます。'});
+  if(!Q.marginHas)R.push({lv:'NG',t:'粗利率を入れてください',s:'下の「この案件で使う単価」か、原価マスターの「価格の決め方」で入れます（例：0.70）。'});
+  if(d.ctype==='dia'&&!(+c.unit>0))R.push({lv:'NG',t:'中石のct単価を入れてください',s:'使う石の仕入原価（在庫裸石なら簿価）から入れます。'});
+  if(d.ctype==='color'&&!(+c.cost>0))R.push({lv:'NG',t:'中石の仕入原価を入れてください',s:''});
+  if(Q.L.some(x=>x.grp==='地金'&&x.src==='tmp'))R.push({lv:'注意',t:`${d.metal}のg単価が仮値です`,s:'原価マスターで本日の相場に更新してください。'});
+  {const ms=Q.L.filter(x=>x.src==='mis'&&!/^中石/.test(x.n)&&x.grp!=='地金');if(ms.length)R.push({lv:'注意',t:`未入力の単価が ${ms.length}件あります（0円で計算）`,s:ms.map(x=>x.n).join('、')+'。下の「この案件で使う単価」に入れると計算に入ります。'});}
+  ng.forEach(x=>R.push({lv:'NG',t:x.t,s:x.s}));
+  {const mm=matchRows();if(mm&&mm.some(x=>!x.ok))R.push({lv:'注意',t:'採用画像と見積の仕様に差があります',s:mm.filter(x=>!x.ok).map(x=>`${x.n}：画像 ${x.img}／見積 ${x.est}`).join('、')+'。そろえてから発行すると、完成品との差が小さくなります。'});
+   else if(!CASE.img?.read&&CASE.img?.finals?.some(f=>f.pick))R.push({lv:'注意',t:'採用画像の石数をまだ読み取っていません',s:'③「見積に渡す」で読み取ると、画像と見積を照合できます。'});}
+  if(!R.some(x=>x.lv==='NG')&&!R.length)R.push({lv:'OK',t:'見積を発行できます',s:''});
+  $('q_ready').innerHTML=checkHTML(R);$('q_issue').disabled=R.some(x=>x.lv==='NG')||!!CASE.order.done;
+  $('q_issue').textContent=CASE.quote?'条件を変えて見積を再発行':'この条件で見積を発行';
+  $('q_issued').innerHTML=CASE.quote?issuedHTML(CASE.quote):'<p class="muted" style="margin:0">発行すると、条件と価格が固定されます。受注後は再発行できません。</p>';}
+function issuedHTML(q){return `<div class="note"><b>発行済み見積 ${esc(q.no)}</b>（${new Date(q.at).toLocaleString('ja-JP')}）<br>${esc(q.metal)} ${f2(q.w)}g・中石 ${esc(q.centerLabel)}・脇石 ${q.sides.reduce((a,s)=>a+s.qty,0)}個 ${f3(q.sides.reduce((a,s)=>a+s.ctT,0))}ct<br><b>税込 ${yen(q.inc)}</b>（税抜 ${yen(q.pre)}・原価 ${yen(q.cost)}）・有効期限 ${q.valid}</div>`;}
+function issueQuote(){
+  const d=CASE.d,Q=quoteCalc(),P=Q.price;if(!P)return;
+  const vd=new Date();vd.setDate(vd.getDate()+(M.validDays||14));
+  CASE.quote={no:CASE.no+'-Q'+String((CASE.quoteSeq=(CASE.quoteSeq||0)+1)),at:new Date().toISOString(),valid:iso(vd),
+    metal:d.metal,gPrice:Q.g,loss:Q.loss,w:Q.w,pcs:Q.G.pcs,w3d:Q.G.wTotal,w3dRaw:Q.G.wRaw,calibKey:calibKey(d),
+    center:Q.center,centerLabel:Q.center.label||'なし',sides:Q.sides,cost:Q.total,pre:P.pre,inc:P.inc,gm:P.gm,
+    rule:{margin:Q.margin,unit:M.unit,round:M.round,tax:M.tax},deposit:depositOf(P.inc),lines:Q.L.map(x=>({grp:x.grp,n:x.n,f:x.f,v:x.v}))};
+  if(CASE.k?.id)setKarteStatus(CASE.k.id,'見積発行',CASE.id);
+  touch();toast(`見積 ${CASE.quote.no} を発行しました（税込 ${yen(P.inc)}）`);}
+
+/* ⑤ 提示：Design & Quotation */
+function custSpec(c=CASE){const d=c.d,q=c.quote;
+  return [['アイテム',ITEMS_JP[d.item]],['地金',`${M.metals[d.metal].lbl}（${d.metal}）`],d.item==='ring'?['サイズ',`${d.size}号`]:null,
+    q&&q.center.type==='dia'?['中石',`天然ダイヤモンド ${(+q.center.ct).toFixed(2)}ct`]:d.ctype==='color'?['中石',`天然${d.cstone}`]:d.ctype==='consign'?['中石',`お預りの${c.k.cs.type}`]:null].filter(Boolean);}
+function basisRows(q){return [['地金',`${q.metal} ${f2(q.w)}g`],q.center.type==='dia'?['中石',`ダイヤモンド ${(+q.center.ct).toFixed(2)}ct${q.pcs>1?' ×2':''}`]:null,q.sides.length?['脇石',`${q.sides.reduce((a,s)=>a+s.qty,0)}石 計${f3(q.sides.reduce((a,s)=>a+s.ctT,0))}ct`]:null].filter(Boolean);}
+function leadText(c=CASE){const m=Math.max(1,Math.round(leadDays(c.d,c)/30));return `${m}ヶ月前後`;}
+function autoTexts(c=CASE){const d=c.d,q=c.quote,cs=c.k.cs||{},it=ITEMS_JP[d.item].replace('（ペア）',''),consign=d.ctype==='consign';
+  const sides=q?q.sides.reduce((a,s)=>a+s.qty,0):0,sideCt=q?q.sides.reduce((a,s)=>a+s.ctT,0):0;
+  const stone=d.ctype==='dia'?`ダイヤ ${(+(q?.center.ct||d.ct)).toFixed(2)}ct`:d.ctype==='color'?`${d.cstone}`:consign?`お預りの${cs.type}`:'';
+  const parts=[stone,sides?`メレダイヤ ${sides}石（計${f2(sideCt)}ct）`:'',d.item==='ring'?`リングサイズ #${d.size}`:'',d.item==='pierce'?'ペア':''].filter(Boolean);
+  return {title:`${d.metal} ${it}${consign?'枠':''}の制作`,line:`${d.metal} ${it}（${parts.join('・')}）でお見積`,lead:leadText(c),
+    body:`${consign?`お預かりしている${cs.type}（${cs.shape}）を使い、`:''}${M.metals[d.metal].lbl}の${it}（${parts.join('・')}）をお作りする場合のお見積と、ご注文から完成までの制作期間です。`,
+    caution:consign?'お預りの石は、加工前に状態を確認いたします。石の状態によっては加工方法をご相談させていただく場合がございます。':''};}
+function pubCands(){const I=CASE.img,d=CASE.d;ensureThumbs();
+  return I.finals.filter(f=>!f.img.local||CAP.mode!=='shared').map((f,i)=>({key:'f:'+f.id,url:f.img.url,label:`画像${i+1}${f.pick?'（採用）':''}`,ai:true,f}))
+    .concat(VIEWS.map(v=>({key:'3d:'+v,url:thumbs[v]||'',label:'3D '+viewLabel(v,d.item),ai:false,v})));}
+function pubDraft(){const P=CASE.pub,q=CASE.quote,cands=pubCands();
+  const imgs=(P.imgs||[]).map(k=>cands.find(c=>c.key===k)).filter(Boolean).map(c=>({url:c.url,ai:c.ai,label:c.label}));
+  return {slot:P.slot,title:P.title,line:P.line,lead:P.lead,body:P.body,caution:P.caution,images:imgs,inc:q?.inc,pre:q?.pre,deposit:q?.deposit,valid:q?.valid,quoteNo:q?.no,basis:q?basisRows(q):[],at:new Date().toISOString()};}
+function fillPubTexts(force){const P=CASE.pub,A=autoTexts(),S=P.autoSnap;['title','line','lead','body','caution'].forEach(k=>{if(force||!S||P[k]==null||P[k]===S[k])P[k]=A[k];});P.autoSnap=A;
+  if(!P.imgs){const picks=CASE.img.finals.filter(f=>f.pick).slice(0,3).map(f=>'f:'+f.id);P.imgs=picks.length?picks:['3d:iso','3d:main','3d:side'];}}
+function initPublish(){['slot','title','line','lead','body','caution'].forEach(k=>bind('pb_'+k,'c','pub.'+k));
+  $('pb_slot').addEventListener('change',()=>{const it=PROPS[CASE.id]?.items?.find(x=>x.slot===CASE.pub.slot);if(it)['title','line','lead','body','caution'].forEach(k=>CASE.pub[k]=it[k]||'');touch();});
+  $('pb_auto').onclick=()=>{fillPubTexts(true);touch();toast('自動の下書きに戻しました');};
+  $('pb_go').onclick=publish;$('pb_pdf').onclick=async()=>{const P=PROPS[CASE.id],doc=P||{name:CASE.k.name,store:CASE.k.store,staff:CASE.k.staff,items:[pubDraft()]};const b=await dqDocPdf(doc,$('pb_pdf'));if(b)await saveFile(dqName(doc),b);};$('pb_view').onclick=()=>{clId=CASE.id;setLine('client');};}
+function renderPublish(){
+  const q=CASE.quote,P=CASE.pub;if(q)fillPubTexts(false);syncBinds();
+  const cands=pubCands();
+  $('pb_imgs').innerHTML=cands.map(c=>{const i=(P.imgs||[]).indexOf(c.key);return `<button data-pk="${c.key}" class="${i>=0?'on':''}">${c.url?`<img src="${esc(c.url)}" alt="">`:'<div style="aspect-ratio:1/1"></div>'}<span>${esc(c.label)}</span><i>${i+1}</i></button>`;}).join('');
+  $('pb_imgs').querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{const L=P.imgs=P.imgs||[],i=L.indexOf(b.dataset.pk);if(i>=0)L.splice(i,1);else{if(L.length>=3)return toast('画像は3枚までです');L.push(b.dataset.pk);}touch();});
+  const R=[];if(!q)R.push({lv:'NG',t:'見積がまだ発行されていません',s:'「見積」で発行してから公開します。'});
+  if(CASE.img.finals.some(f=>f.img.local)&&CAP.mode==='shared')R.push({lv:'注意',t:'この端末にしかない画像は載せられません',s:''});
+  if(q&&!(P.imgs||[]).length)R.push({lv:'注意',t:'画像が選ばれていません',s:'見積書は文章だけになります。'});
+  if(!R.length)R.push({lv:'OK',t:'公開できます',s:'お客様ページ（店舗の端末）で見積書を表示し、PDFで保存できます。'});
+  $('pb_checks').innerHTML=checkHTML(R);$('pb_go').disabled=!q;
+  $('pb_prev').innerHTML=q?dqPage({name:CASE.k.name,store:CASE.k.store,staff:CASE.k.staff},pubDraft()):'<div class="empty">見積の発行後に表示されます。</div>';
+  if(q)fitDQ($('pb_prev').parentElement);
+  const PP=PROPS[CASE.id];
+  $('pb_list').innerHTML=PP&&PP.items?.length?PP.items.map((it,i)=>`<div class="row"><div><b>${esc(it.slot)}　${esc(it.title)}</b><span class="muted">${yen(it.inc)}・${new Date(it.at).toLocaleString('ja-JP')}</span></div><button class="btn danger sm" data-unpub="${i}">公開をやめる</button></div>`).join(''):'<p class="muted" style="margin:0">まだ公開していません。</p>';
+  $('pb_list').querySelectorAll('[data-unpub]').forEach(b=>b.onclick=()=>unpublish(+b.dataset.unpub));}
+async function publish(){
+  const d=CASE.d,q=CASE.quote;if(!q)return;$('pb_go').disabled=true;$('pb_go').textContent='公開しています…';
+  try{const draft=pubDraft(),cands=pubCands(),imgs=[];if(R3.ok)build3D(d);
+    for(const k of (CASE.pub.imgs||[])){const c=cands.find(x=>x.key===k);if(!c)continue;
+      if(c.ai){imgs.push({url:c.f.img.url,id:c.f.img.id||null,ai:true,label:'Design Image'});continue;}
+      const u=snapView(c.v,d.item,CAP.assets?1000:480);if(!u)continue;
+      if(CAP.assets){const r=await putImage(dataUrlToBlob(u),`3d_${c.v}.jpg`);if(!r.local)imgs.push({url:r.url,id:r.id,ai:false,label:'3D Image'});}else imgs.push({url:u,ai:false,label:'3D Image'});}
+    lastKey='';
+    const item=Object.assign(draft,{images:imgs});
+    const prev=PROPS[CASE.id]||{items:[]};const items=prev.items.filter(x=>x.slot!==item.slot).concat(item).sort((a,b)=>a.slot.localeCompare(b.slot));
+    const doc={caseNo:CASE.no,name:CASE.k.name,store:CASE.k.store,staff:CASE.k.staff,items,settle:prev.settle||null,updatedAt:new Date().toISOString()};
+    if(JSON.stringify(doc).length>240000)throw {message:'公開データが大きすぎます（画像を減らしてください）'};
+    if(await put('proposals',CASE.id,doc)){PROPS[CASE.id]=doc;if(CASE.k?.id)setKarteStatus(CASE.k.id,'提案済み',CASE.id);touch();
+      $('pb_go').textContent='PDFを作っています…';const blob=await dqDocPdf(doc);
+      if(blob&&CAP.assets){if(prev.pdf?.id)try{await CAP.assets.delete(prev.pdf.id);}catch(e){}
+        const r=await CAP.assets.upload(new File([blob],dqName(doc),{type:'application/pdf'}));doc.pdf={id:r.id,url:r.url,name:dqName(doc),at:new Date().toISOString()};await put('proposals',CASE.id,doc);PROPS[CASE.id]=doc;
+        toast(`${item.slot}を公開し、PDFを店舗に送りました`);}
+      else if(blob){toast(`${item.slot}を公開しました（共有なしのため、PDFはこの端末に保存します）`);await saveFile(dqName(doc),blob);}
+      else toast(`${item.slot}を公開しました（PDFは作れませんでした）`);}
+  }catch(e){toast('公開できませんでした：'+(e.code||e.message||''));}
+  $('pb_go').disabled=false;$('pb_go').textContent='見積書をお客様ページに公開';render();}
+async function unpublish(i){const P=PROPS[CASE.id];if(!P)return;const it=P.items[i];for(const im of it.images)if(im.id&&!im.ai&&CAP.assets)try{await CAP.assets.delete(im.id);}catch(e){}
+  P.items.splice(i,1);if(P.items.length||P.settle)await put('proposals',CASE.id,P);else{await del('proposals',CASE.id);delete PROPS[CASE.id];}toast(`${it.slot}の公開をやめました`);render();}
+
+/* ⑥ 受注 */
+const TODO=[['spec','デザイン・サイズをお客様と最終確認した'],['basis','見積の条件（地金重量・石目）と精算のルールを説明した'],['stone','中石の手配（在庫引当・仕入・お預り）を確定した'],['consign','お預り石を検品し、写真を記録した'],['img','AIイメージ画は参考であることを説明した'],['due','納期とお受け取り方法を確認した']];
+function initOrder(){bind('o_date','c','order.date');bind('o_paid','c','order.paid',true);
+  $('o_go').onclick=()=>{const q=CASE.quote;if(!q)return toast('見積を発行してください');
+    if(CASE.order.done){CASE.order.done=false;touch();toast('受注を取り消しました');return;}
+    if(!(+CASE.order.paid>0))return toast('内金の受領額を入れてください');
+    CASE.order.done=true;if(CASE.k?.id)setKarteStatus(CASE.k.id,'受注',CASE.id);touch();toast('受注を確定しました');};}
+function renderOrder(){
+  renderOrderReqBox();
+  const d=CASE.d,q=CASE.quote,L=M.lead;
+  if(q&&CASE.order.paid==='')CASE.order.paid=q.deposit;syncBinds();
+  $('o_kpi').innerHTML=q?`<div class="kpi"><small>見積額（税込）</small><b>${yen(q.inc)}</b></div><div class="kpi"><small>内金（${Math.round(M.depositRate*100)}%）</small><b>${yen(q.deposit)}</b></div><div class="kpi"><small>残金の上限</small><b>${yen(q.inc-(+CASE.order.paid||0))}</b></div>`:'<div class="empty" style="grid-column:1/-1">見積を発行すると表示されます。</div>';
+  $('o_go').textContent=CASE.order.done?'受注を取り消す':'受注を確定する';$('o_go').className=CASE.order.done?'btn ghost':'btn gold';$('o_go').disabled=!q;
+  $('o_todo').innerHTML=TODO.filter(([k])=>d.ctype==='consign'||k!=='consign').map(([k,t])=>`<label class="todo"><input type="checkbox" data-k="${k}" ${CASE.order.todo[k]?'checked':''}>${t}</label>`).join('');
+  $('o_todo').querySelectorAll('input').forEach(i=>i.onchange=()=>{CASE.order.todo[i.dataset.k]=i.checked;touch();});
+  const days=leadDays(d),st=new Date(CASE.order.date||Date.now()),end=new Date(st);end.setDate(end.getDate()+days);const due=CASE.k.due?new Date(CASE.k.due):null;
+  $('o_lead').innerHTML=`<table><tr><td>制作日数の目安</td><td class="n">${days}日</td></tr><tr><td>お渡し可能日</td><td class="n">${end.toLocaleDateString('ja-JP')}</td></tr><tr><td>ご希望納期</td><td class="n">${due?due.toLocaleDateString('ja-JP'):'—'}</td></tr></table>${due&&end>due?checkHTML([{lv:'注意',t:'ご希望納期に間に合いません',s:'日程の相談が必要です。'}]):''}`;
+  const mt=M.metals[d.metal],cs=CASE.k.cs,info=STONEINFO[cs.type]||{},notes=[];
+  if(mt.rh)notes.push('ロジウム仕上げ');if(d.finish!=='鏡面')notes.push('仕上げ：'+d.finish);
+  if(d.ctype==='consign'&&info.heat)notes.push(`${cs.type}は熱に弱いため、ロウ付け前に石を外すこと`);
+  if(cs.has==='yes'&&cs.other)notes.push('お預り品（石以外）：'+cs.other);
+  if(d.ctype==='consign')notes.push(`お預り石：${cs.type}・${cs.shape}・縦${cs.L||cs.mm||'—'}×横${cs.W||cs.mm||'—'}×高さ${cs.H||'—'}mm`);
+  CASE.anchors.filter(a=>a.lock&&a.text).forEach(a=>notes.push(`意匠（必ず保持）：${a.cat}　${a.text}`));
+  CASE.q.extras.filter(x=>x.n).forEach(x=>notes.push('追加加工：'+x.n));
+  $('o_sheet').innerHTML=q?`<dl class="spec"><dt>案件</dt><dd>${esc(CASE.no)}　${esc(CASE.k.store)}店　${esc(CASE.k.name)} 様</dd><dt>アイテム・型</dt><dd>${ITEMS_JP[d.item]}・${MODELS[d.model]}</dd><dt>地金</dt><dd>${d.metal}</dd>
+    ${d.item==='ring'?`<dt>サイズ</dt><dd>${d.size}号${d.model!=='free'?`　${d.prof==='koma'?'甲丸':'平打ち'} 幅${d.w.toFixed(1)}×厚${d.t.toFixed(1)}mm`:''}</dd>`:''}
+    <dt>目標の地金重量</dt><dd><b>${f2(q.w)}g</b>（見積の基準。大きく超える場合は事前に本社へ連絡）</dd>
+    ${q.center.type==='dia'?`<dt>中石</dt><dd>ダイヤ ${(+q.center.ct).toFixed(2)}ct ${esc(q.center.grade)}　Ø${ctToMm(q.center.ct).toFixed(2)}mm</dd>`:q.center.label?`<dt>中石</dt><dd>${esc(q.center.label)}</dd>`:''}
+    ${q.sides.map(s=>`<dt>脇石</dt><dd>${esc(s.name)} × ${s.qty}個（計${f3(s.ctT)}ct）・${s.set}</dd>`).join('')}
+    <dt>指示事項</dt><dd>${notes.map(esc).join('<br>')||'—'}</dd><dt>完成時の報告</dt><dd>実際の地金重量（g）と、使用した石の個数・合計ctを報告すること（精算に使用）</dd></dl>`:'<p class="muted" style="margin:0">見積の発行後に表示されます。</p>';}
+
+/* ⑦ 精算 */
+function settleCalc(c=CASE){
+  const q=c.quote,s=c.settle;if(!q)return null;const lines=[];
+  const wA=+s.w>0?+s.w:null;
+  lines.push({n:`地金 ${q.metal}`,est:`${f2(q.w)}g`,act:wA!=null?`${f2(wA)}g`:'',unit:`${yen(q.gPrice)}/g ×（1＋${(q.loss*100).toFixed(0)}%）`,diff:wA!=null?(wA-q.w)*q.gPrice*(1+q.loss):0,ready:wA!=null,key:'w'});
+  if(q.center.type==='dia'){const ctA=+s.ct>0?+s.ct:null;lines.push({n:'中石 ダイヤ',est:`${(+q.center.ct).toFixed(2)}ct${q.pcs>1?'×2':''}`,act:ctA!=null?`${ctA.toFixed(2)}ct`:'',unit:`${yen(q.center.unit)}/ct`,diff:ctA!=null?(ctA-q.center.ct)*q.center.unit*q.pcs:0,ready:ctA!=null,key:'ct'});}
+  q.sides.forEach(sd=>{const a=s.sides?.[sd.key||sd.mid];const ctA=a&&+a.ct>0?+a.ct:null;lines.push({n:`脇石 ${sd.name}`,est:`${sd.qty}個 ${f3(sd.ctT)}ct`,act:ctA!=null?`${a.qty||sd.qty}個 ${f3(ctA)}ct`:'',unit:`${yen(sd.uct)}/ct（${yen(sd.pc)}/個）`,diff:ctA!=null?(ctA-sd.ctT)*sd.uct:0,ready:ctA!=null,key:'s_'+(sd.key||sd.mid)});});
+  const dCost=lines.reduce((a,l)=>a+l.diff,0),cost=q.cost+dCost,r=q.rule;
+  const adj=priceOf(cost,r.margin,r.unit,r.round,r.tax);
+  const capped=adj&&adj.inc>q.inc;const finalInc=adj?Math.min(adj.inc,q.inc):q.inc;const finalPre=capped?q.pre:adj?adj.pre:q.pre;
+  const gm=1-cost/finalPre;const paid=+c.order.paid||0;
+  return {lines,dCost,cost,adj,capped,finalInc,finalPre,gm,paid,balance:finalInc-paid,allReady:lines.every(l=>l.ready)};}
+function initSettle(){
+  $('s_go').onclick=()=>{const S=settleCalc();if(!S)return;if(!CASE.order.done)return toast('受注が確定していません');if(!S.allReady)return toast('実際の値をすべて入れてください');
+    if(CASE.settle.done){CASE.settle.done=null;touch();toast('精算の確定を取り消しました');return;}
+    CASE.settle.done={at:new Date().toISOString(),finalInc:S.finalInc,finalPre:S.finalPre,cost:S.cost,gm:S.gm,capped:S.capped,balance:S.balance,wAct:+CASE.settle.w,w3d:CASE.quote.w3d,w3dRaw:CASE.quote.w3dRaw,calibKey:CASE.quote.calibKey};
+    if(CASE.k?.id)setKarteStatus(CASE.k.id,'完成・精算',CASE.id);touch();toast(`精算を確定しました（最終 ${yen(S.finalInc)}）`);};
+  $('s_pub').onclick=async()=>{const S=settleCalc(),P=PROPS[CASE.id];if(!CASE.settle.done)return toast('先に精算を確定してください');if(!P)return toast('この案件はお客様ページに公開されていません');
+    P.settle={at:new Date().toISOString(),quoteInc:CASE.quote.inc,finalInc:S.finalInc,paid:S.paid,balance:S.balance,capped:S.capped,lines:S.lines.map(l=>({n:l.n.replace(/ H\/SI\/GDup/,''),est:l.est,act:l.act,dir:l.diff<-0.5?'減':l.diff>0.5?'増':'同じ'}))};
+    if(await put('proposals',CASE.id,P)){toast('お客様ページに精算のご案内を表示しました');render();}};}
+function renderSettle(){
+  const q=CASE.quote;if(!q){$('s_tbl').innerHTML='<div class="empty">見積を発行し、受注すると精算できます。</div>';$('s_stmt').innerHTML='';$('s_acc').innerHTML='';return;}
+  const S=settleCalc(),s=CASE.settle,locked=!!s.done;
+  $('s_tbl').innerHTML=`<table><tr><th>項目</th><th class="n">見積</th><th class="n">実際</th><th>単価（見積時）</th><th class="n">原価の差</th></tr>${S.lines.map(l=>{
+    let inp='';if(l.key==='w')inp=`<input type="number" step="0.01" min="0" data-sk="w" value="${s.w??''}" placeholder="g" style="width:90px"${locked?' disabled':''}>`;
+    else if(l.key==='ct')inp=`<input type="number" step="0.001" min="0" data-sk="ct" value="${s.ct??''}" placeholder="ct" style="width:90px"${locked?' disabled':''}>`;
+    else{const mid=l.key.slice(2),a=s.sides?.[mid]||{};inp=`<input type="number" step="1" min="0" data-sq="${mid}" value="${a.qty??''}" placeholder="個" style="width:60px"${locked?' disabled':''}> <input type="number" step="0.001" min="0" data-sc="${mid}" value="${a.ct??''}" placeholder="合計ct" style="width:86px"${locked?' disabled':''}>`;}
+    return `<tr><td>${esc(l.n)}</td><td class="n">${l.est}</td><td class="n">${inp}</td><td class="muted">${l.unit}</td><td class="n">${l.ready?sgn(l.diff):'—'}</td></tr>`;}).join('')}<tr class="tot"><td colspan="4">原価の差 合計</td><td class="n">${sgn(S.dCost)}</td></tr></table><p class="muted" style="margin:6px 0 0">工賃・パーツは見積のまま固定です。単価は見積を発行した時点の値を使います。</p>`;
+  $('s_tbl').querySelectorAll('[data-sk]').forEach(el=>el.onchange=()=>{s[el.dataset.sk]=el.value===''?'':+el.value;touch();});
+  $('s_tbl').querySelectorAll('[data-sq],[data-sc]').forEach(el=>el.onchange=()=>{const mid=el.dataset.sq||el.dataset.sc;s.sides=s.sides||{};s.sides[mid]=s.sides[mid]||{};s.sides[mid][el.dataset.sq?'qty':'ct']=el.value===''?'':+el.value;touch();});
+  const low=S.gm<M.marginAlert;
+  $('s_stmt').innerHTML=`<table class="stmt"><tr><td>お見積金額（税込）</td><td class="n">${yen(q.inc)}</td></tr>
+    <tr><td>差額を調整した金額（税込）</td><td class="n">${S.adj?yen(S.adj.inc):'—'}${S.allReady?'':'<div class="muted">実際の値が未入力</div>'}</td></tr>
+    <tr><td><b>最終価格（税込）</b>${S.capped?'<div><span class="pill p-warn">見積額で確定（上限）</span></div>':S.finalInc<q.inc?'<div><span class="pill p-ok">減額して精算</span></div>':''}</td><td class="n big">${yen(S.finalInc)}</td></tr>
+    <tr><td>内金（受領済み）</td><td class="n">− ${yen(S.paid)}</td></tr><tr class="tot"><td>残金のご請求</td><td class="n big">${yen(S.balance)}</td></tr></table>
+    <div class="kpis" style="margin-top:10px;grid-template-columns:repeat(3,minmax(0,1fr))"><div class="kpi"><small>実際の原価</small><b>${yen(S.cost)}</b></div><div class="kpi${low?' bad':''}"><small>最終の粗利率</small><b>${(S.gm*100).toFixed(1)}%</b></div><div class="kpi"><small>見積時の粗利率</small><b>${(q.gm*100).toFixed(1)}%</b></div></div>
+    ${S.capped?checkHTML([{lv:'注意',t:`見積を超えた分 ${yen(S.adj.inc-q.inc)}（税込）は当社負担です`,s:'粗利が下がっています。原因（重量・石目のどちらか）を補正係数・仕入に反映してください。'}]):''}
+    ${low?checkHTML([{lv:'NG',t:`粗利率が警戒ライン ${Math.round(M.marginAlert*100)}% を下回りました`,s:''}]):''}
+    ${s.done?`<div class="note" style="margin-top:8px">精算確定済み（${new Date(s.done.at).toLocaleString('ja-JP')}）</div>`:''}`;
+  $('s_go').textContent=s.done?'精算の確定を取り消す':'精算を確定する';$('s_go').className=s.done?'btn ghost':'btn gold';$('s_go').disabled=!CASE.order.done;
+  $('s_pub').disabled=!s.done;
+  if(+s.w>0){const er=(+s.w-q.w3d)/q.w3d,er2=(+s.w-q.w)/q.w;
+    $('s_acc').innerHTML=`<table><tr><td>3D推定（見積時・補正後）</td><td class="n">${f2(q.w3d)}g</td><td class="n">${er>=0?'+':''}${(er*100).toFixed(1)}%</td></tr><tr><td>見積に使った重量</td><td class="n">${f2(q.w)}g</td><td class="n">${er2>=0?'+':''}${(er2*100).toFixed(1)}%</td></tr><tr class="tot"><td>実重量</td><td class="n">${f2(+s.w)}g</td><td></td></tr></table><p class="muted" style="margin:6px 0 0">精算を確定すると、この差が「原価マスター → 補正係数」の計算に使われます。</p>`;}
+  else $('s_acc').innerHTML='<p class="muted" style="margin:0">実重量を入れると、3D推定との差が出ます。</p>';}
+
+/* ⑧ 原価マスター */
+function inp(path,val,w=100,step=1){return `<input type="number" step="${step}" data-p="${path}" value="${val??''}" style="width:${w}px" placeholder="未入力">`;}
+function renderMaster(){
+  $('m_sides').innerHTML=`<table><tr><th>石</th><th class="n">径</th><th class="n">1個単価（円）</th><th class="n">ct/個</th><th class="n">ct単価（逆算）</th><th></th></tr>${M.sides.map((s,i)=>`<tr><td>${esc(s.name)}${s.grade?`<div class="muted">${esc(s.grade)}</div>`:''}</td><td class="n">Ø${s.mm}</td><td class="n">${inp(`sides.${i}.pc`,s.pc,90,10)}</td><td class="n">${inp(`sides.${i}.ct`,s.ct,80,0.0005)}${s.ctSrc==='tmp'?'<div><span class="pill p-tmp">参考</span></div>':''}</td><td class="n"><b>${yen(s.pc/s.ct)}</b>/ct</td><td><button class="chipbtn" data-sdel="${i}">削除</button></td></tr>`).join('')}</table>
+    <p class="muted" style="margin:6px 0 0">メレの1個単価は、Excelのct単価×参考ct/個から換算した初期値です。<b>ct/個は仕入先の実測値（例：100個の合計ct÷100）に置き換える</b>と、ct単価の逆算が正確になり、精算の信頼性が上がります。</p>`;
+  $('m_sides').querySelectorAll('[data-sdel]').forEach(b=>b.onclick=()=>{if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='削除？';setTimeout(()=>{b.dataset.arm='';b.textContent='削除';},2500);return;}M.sides.splice(+b.dataset.sdel,1);saveMaster();});
+  // 補正係数
+  const stats={};Object.values(CASES).forEach(c=>{const s=c.settle?.done;if(s&&s.wAct>0&&s.w3dRaw>0){(stats[s.calibKey]=stats[s.calibKey]||[]).push(s.wAct/s.w3dRaw);}});
+  const keys=new Set([...Object.keys(stats),...Object.keys(M.calib)]);
+  $('m_calib').innerHTML=keys.size?`<table><tr><th>アイテム・型</th><th class="n">件数</th><th class="n">実重量÷推定（平均）</th><th class="n">使用中の係数</th><th></th></tr>${[...keys].map(k=>{const a=stats[k]||[],avg=a.length?a.reduce((x,y)=>x+y,0)/a.length:null,[it,md]=k.split('_');
+    return `<tr><td>${ITEMS_JP[it]}・${MODELS[md]}</td><td class="n">${a.length}</td><td class="n">${avg?avg.toFixed(3):'—'}</td><td class="n">×${(M.calib[k]?.factor||1).toFixed(3)}</td><td>${avg?`<button class="chipbtn" data-cal="${k}" data-v="${avg}">平均を使う</button>`:''}</td></tr>`;}).join('')}</table>`:'<p class="muted" style="margin:0">精算を確定した案件がまだありません。実重量が貯まると、型ごとに「実重量÷3D推定」の平均が出て、推定に掛ける補正係数にできます。</p>';
+  $('m_calib').querySelectorAll('[data-cal]').forEach(b=>b.onclick=()=>{M.calib[b.dataset.cal]={factor:+(+b.dataset.v).toFixed(3),n:(stats[b.dataset.cal]||[]).length,at:iso(new Date())};saveMaster();toast('補正係数を更新しました');});
+  $('m_basic').innerHTML=`<table><tr><td>粗利率</td><td class="n">${inp('margin',M.margin,80,0.01)}</td></tr><tr><td>消費税率</td><td class="n">${inp('tax',M.tax,80,0.01)}</td></tr><tr><td>税抜の丸め単位（円）</td><td class="n">${inp('unit',M.unit,90,100)}</td></tr>
+    <tr><td>丸め方法</td><td class="n"><select id="m_round" style="width:110px">${['切捨て','四捨五入','切上げ'].map(x=>`<option${x===M.round?' selected':''}>${x}</option>`).join('')}</select></td></tr>
+    <tr><td>重量の見立て余裕（3D推定に上乗せ。0.05＝5%）</td><td class="n">${inp('wMargin',wM(),80,0.01)}</td></tr><tr><td>内金の割合</td><td class="n">${inp('depositRate',M.depositRate,80,0.05)}</td></tr><tr><td>内金の切上げ単位（円）</td><td class="n">${inp('depositUnit',M.depositUnit,90,100)}</td></tr>
+    <tr><td>粗利率の警戒ライン（精算時）</td><td class="n">${inp('marginAlert',M.marginAlert,80,0.01)}</td></tr><tr><td>見積有効期限（日）</td><td class="n">${inp('validDays',M.validDays,80)}</td></tr><tr><td>検品・マージン係数</td><td class="n">${inp('inspect',M.inspect,80,0.01)}</td></tr></table>`;
+  $('m_round').onchange=e=>{M.round=e.target.value;saveMaster();};
+  $('m_metal').innerHTML='<table><tr><th>金種</th><th class="n">比重</th><th class="n">g単価（円）</th><th class="n">ロス率</th><th></th></tr>'+Object.entries(M.metals).map(([k,m])=>`<tr><td>${k}</td><td class="n">${m.dens}</td><td class="n">${inp('metals.'+k+'.g',m.g,90)}</td><td class="n">${inp('metals.'+k+'.loss',m.loss,64,0.01)}</td><td>${pill(m.gs)}</td></tr>`).join('')+'</table>';
+  $('m_center').innerHTML='<table><tr><th>重量帯</th>'+M.grades.map(g=>`<th class="n">${g}</th>`).join('')+'</tr>'+M.center.map((r,i)=>`<tr><td>${r[0].toFixed(2)}ct〜</td>${r[1].map((v,j)=>`<td class="n">${inp(`center.${i}.1.${j}`,v,100,1000)}</td>`).join('')}</tr>`).join('')+`</table><p class="muted" style="margin:6px 0 0">${pill(M.centerSrc)} 見積では案件ごとに実際のct単価を入れます。ここは「目安を入れる」ボタンの値です。</p>`;
+  {const TN=['D','C','A','A+'],row=(l,cells)=>`<tr><td>${l}</td><td class="n">${cells}</td></tr>`,four=k=>TN.map((n,i)=>`<label style="display:inline-block;margin-left:6px">${n} ${inp(`${k}.${i}`,M[k][i],76,100)}</label>`).join('');
+   M.castSTL=M.castSTL||[];
+   $('m_labor').innerHTML=`<table>${row('CADモデリング',four('cad'))}${row('3Dプリント原型（1点）',four('print'))}${row('仕上・研磨（1本）',four('finish'))}
+     ${Object.keys(SETN).map(k=>row('石留 '+SETN[k]+'（1石）',inp('set.'+k,M.set[k],90,10))).join('')}
+     ${row('組立（1点）',inp('assembly',M.assembly,90,100))}${row('ロウ付け（1か所）',inp('braze',M.braze,90,100))}
+     ${row('ロジウム リング／ネックレス／ピアス',['ring','pendant','pierce'].map(k=>inp('rh.'+k,M.rh[k],76,100)).join(' '))}${row('刻印（品位・1点）',inp('stamp',M.stamp,90,10))}</table>
+     <h3>キャスト（重量帯別・1点）</h3><table><tr><th class="n">〜g まで</th><th class="n">金（円）</th><th class="n">Pt（円）</th><th></th></tr>${M.castSTL.map((r,i)=>`<tr><td class="n">${inp(`castSTL.${i}.0`,r[0],76,0.5)}</td><td class="n">${inp(`castSTL.${i}.1`,r[1],90,100)}</td><td class="n">${inp(`castSTL.${i}.2`,r[2],90,100)}</td><td><button class="chipbtn" data-castdel="${i}">削除</button></td></tr>`).join('')}</table>
+     <div class="btns" style="margin-top:8px"><button class="btn ghost sm" id="m_addCast">重量帯を追加</button></div><p class="muted" style="margin:6px 0 0">重量帯は軽い順に並べます。1行だけのときは、すべての重量にその金額を使います（「〜g まで」は 9999 のままで構いません）。</p>`;
+   $('m_addCast').onclick=()=>{M.castSTL.push([M.castSTL.length?'':9999,'','']);saveMaster();};
+   $('m_labor').querySelectorAll('[data-castdel]').forEach(b=>b.onclick=()=>{M.castSTL.splice(+b.dataset.castdel,1);saveMaster();});}
+  $('m_parts').innerHTML='<table><tr><th>品名</th><th class="n">K10</th><th class="n">K18</th><th class="n">Pt</th><th></th></tr>'+Object.entries(M.parts).map(([k,p])=>`<tr><td>${p.n}</td>${['K10','K18','Pt'].map(c=>`<td class="n">${inp(`parts.${k}.${c}`,p[c],76,100)}</td>`).join('')}<td>${pill(p.s)}</td></tr>`).join('')+'</table><table style="margin-top:10px"><tr><th>表面加工・付帯</th><th class="n">単価</th></tr>'+Object.entries(M.tex).map(([k,v])=>`<tr><td>${k}</td><td class="n">${inp('tex.'+k,v,90,100)}</td></tr>`).join('')+Object.entries(M.extras).map(([k,x])=>`<tr><td>${x.n}</td><td class="n">${inp(`extras.${k}.v`,x.v,90,100)}</td></tr>`).join('')+'</table>';
+  document.querySelectorAll('#p-master input[data-p]').forEach(el=>el.onchange=()=>{const v=el.value===''?null:+el.value;mSet(el.dataset.p,v,false);
+    if(el.dataset.p.startsWith('castSTL.'))M.castSTL.sort((a,b)=>(numOr(a[0])??1e9)-(numOr(b[0])??1e9));
+    saveMaster();toast('原価マスターを更新しました');});}
+function initMaster(){
+  $('m_addSide').onclick=()=>{M.sides.push({id:newId('s'),kind:'dia',name:'メレダイヤ',grade:'',mm:1.0,ct:0.005,pc:380,src:'fix',ctSrc:'tmp'});saveMaster();};
+  $('m_reset').onclick=e=>{const b=e.target;if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='もう一度押すと戻ります';setTimeout(()=>{b.dataset.arm='';b.textContent='初期値に戻す';},3000);return;}M=JSON.parse(JSON.stringify(MASTER0));b.dataset.arm='';b.textContent='初期値に戻す';saveMaster();toast('初期値に戻しました');};}
+
+/* ⑨ 課題 */
+function issueList(id,L){$(id).innerHTML=L.map(([lv,t,s])=>`<div class="issue"><span class="pill ${lv==='高'?'p-ng':lv==='中'?'p-warn':lv==='足す'||lv==='変える'?'p-ok':lv==='省く'?'p-fix':'p-tmp'}">${lv}</span><div><b>${t}</b><div class="muted">${s}</div></div></div>`).join('');}
+function renderIssues(){
+  issueList('i_addrm',[
+    ['足す','店舗ライン（基本情報カルテ）','店舗はカルテを書いて送るだけにし、原価は見せないため。必須項目が揃わないと送れません。'],
+    ['足す','「次にやること」と進捗の帯','本社が案件ごとに迷わず次の作業へ進めるため（カルテ受信→デザイン→見積発行→提示→受注→精算）。'],
+    ['変える','4面サムネをその場で更新','寸法・石・地金を動かすたびに4面が描き直され、確認のための画面移動をなくしました。'],
+    ['変える','画像生成を独立した工程「デザイン画像」に分離','依頼（4項目＋雰囲気）→3案→仕上げ→読み取りの4段階。生成は外部（Gemini／ChatGPT）で、結果は仕様カードとして見積に渡します。'],
+    ['足す','お客様用 Design & Quotation','見本PDFの体裁で案ごとにA4 1枚。社内情報は載せず、PDFで保存できます。'],
+    ['足す','画像の読み取り→見積に反映','生成した画像から石数・石径・寸法をGeminiが拾い、ボタン一つで見積の脇石・中石に入れられるようにしました。'],
+    ['変える','地金重量と中石は案件ごとに入力','見積の基準を担当者が決めた数字にするため。3D推定値はボタン一つで入れられる参考値です。'],
+    ['変える','脇石は1個単価で管理し、ct単価を逆算表示','石材価格の根拠を「1個いくら」に揃え、精算時はct単価で差額を出せるようにしました。'],
+    ['足す','見積の発行（条件と価格の固定）','精算の基準が後から変わらないよう、発行時の重量・石目・単価・丸めルールを保存します。'],
+    ['足す','内金50%と精算（上限＝初回見積）','完成時に実重量・実石目で差額を出し、見積を超えた分は当社負担として自動で上限をかけます。'],
+    ['足す','3D推定の補正係数','精算した実重量を貯め、型ごとに推定のずれを補正して、次の見積の精度を上げるため。'],
+    ['省く','グレード別価格表・概算の価格幅','中石の単価を案件ごとに入れる運用に変えたため。必要なら戻せます。'],
+    ['省く','4面整合性チェック（前版）','「読み取り→見積に反映」に置き換えました。']]);
+  issueList('i_data',[
+    ['高','地金のg単価（仮値）','相場をいつ・誰が更新するかを決めてください。見積は発行時の単価で固定されます。'],
+    ['高','脇石の ct/個 が参考値','初期値は一般的な目安です。仕入先の実測値に置き換えると、逆算したct単価と精算の信頼性が上がります。'],
+    ['中','色石の脇石はØ2.0mmのみ','他のサイズは「脇石を追加」で1個単価を登録してください。'],
+    ['中','表面加工・パーツ・付帯費用が空欄・仮値','ペンダント・ピアス・槌目などの見積に影響します。'],
+    ['確認','精算で差額を調整する範囲','いまは地金重量・中石ct・脇石ctのみ。工賃（キャスト重量帯など）は見積のまま固定しています。'],
+    ['確認','減額時の端数処理','差額を調整した金額も見積と同じ丸め（1,000円単位・切捨て）にしています。']]);
+  issueList('i_app',[
+    ['高','アプリから画像生成サービスを直接呼べない','直接生成するには、社内承認のうえAPIキーを預かる中継サーバーが必要です。モジュールを分けたので、後から差し替えできます。'],
+    ['高','画像の読み取りは推定','画像からの石数・寸法は目安です。必ず担当者が確認してから反映します。'],
+    ['中','カルテは全店舗から見える','店舗ごとに見える範囲を分けるには、店舗ごとの権限設定が必要です。'],
+    ['中','精算書・見積書のPDF出力','画面表示のみ。正式なアイテム別フォーマットができたら出力に対応します。']]);}
+
+/* ═════════ お客様ライン ═════════ */
+function renderClient(){
+  const s=$('clCase'),ids=Object.keys(PROPS).sort((a,b)=>(PROPS[b].updatedAt||'').localeCompare(PROPS[a].updatedAt||''));
+  s.innerHTML=ids.length?ids.map(i=>`<option value="${i}">${esc(PROPS[i].name)} 様　${esc(PROPS[i].store||'')}店</option>`).join(''):'<option value="">公開中の見積書はありません</option>';
+  if(!clId||!PROPS[clId])clId=ids[0]||null;if(clId)s.value=clId;
+  s.onchange=()=>{clId=s.value;history.replaceState(null,'','#client-'+clId);renderClient();};
+  s.hidden=ids.length<2;
+  const P=clId&&PROPS[clId],B=$('clBody');$('clPdf').hidden=!P||!CAP.dl;
+  if(!P||!(P.items?.length||P.settle)){B.innerHTML=`<div class="empty" style="margin-top:20px;width:100%">${CAP.mode==='connecting'?'読み込んでいます…':'表示できる見積書はまだありません。'}</div>`;return;}
+  const pages=(P.settle?[dqSettle(P)]:[]).concat((P.items||[]).map(it=>dqPage(P,it)));
+  B.innerHTML=pages.map(p=>`<div class="dqfit">${p}</div>`).join('');fitDQ(B);
+  B.querySelectorAll('img').forEach(im=>im.addEventListener('load',()=>fitDQ(B),{once:true}));
+  $('clPdf').onclick=()=>P.pdf?getPdf(clId,$('clPdf')):dqPdf(B,dqName(P),$('clPdf'));}
+
+/* ═════════ Design & Quotation（お客様用見積書） ═════════ */
+const DAMASK_T=`<svg viewBox="0 0 794 330" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><defs>
+<g id="dmm" fill="#DCD8D2"><path d="M60 8c-9 14-12 27-9 38 2 8 6 13 9 19 3-6 7-11 9-19 3-11 0-24-9-38z"/>
+<path d="M60 58c-14-2-27 4-33 15-4 8-2 18 6 22 7 3 14-1 15-8 1-5-3-9-7-8 6-6 13-9 19-8z"/><path d="M60 58c14-2 27 4 33 15 4 8 2 18-6 22-7 3-14-1-15-8-1-5 3-9 7-8-6-6-13-9-19-8z"/>
+<path d="M60 70c-6 10-7 22-3 32l3 8 3-8c4-10 3-22-3-32z"/><path d="M48 112c4 6 8 9 12 10 4-1 8-4 12-10-5 3-9 4-12 4s-7-1-12-4z"/>
+<path d="M31 34c-10-4-20 0-23 8 6-3 12-3 17 0-5 2-7 8-4 12 3-6 9-9 16-8-2-5-3-9-6-12z"/><path d="M89 34c10-4 20 0 23 8-6-3-12-3-17 0 5 2 7 8 4 12-3-6-9-9-16-8 2-5 3-9 6-12z"/>
+<circle cx="60" cy="130" r="3"/><circle cx="20" cy="96" r="2.4"/><circle cx="100" cy="96" r="2.4"/></g>
+<pattern id="dmp" width="120" height="140" patternUnits="userSpaceOnUse"><use href="#dmm"/><use href="#dmm" x="-60" y="70"/><use href="#dmm" x="60" y="70"/></pattern>
+<linearGradient id="dmf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".05"/><stop offset=".55" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>
+<rect width="794" height="330" fill="#F6F5F3"/><rect width="794" height="330" fill="url(#dmp)"/><rect width="794" height="330" fill="url(#dmf)"/></svg>`;
+let dmN=0;function DAMASK(){const n=++dmN;return DAMASK_T.replace(/dm([mpf])\b/g,'dm$1'+n);}
+const ORN='<svg viewBox="0 0 220 16" aria-hidden="true"><path d="M8 8h86M126 8h86" stroke="#B89A5A" stroke-width=".8"/><path d="M110 2l6 6-6 6-6-6z" fill="none" stroke="#B89A5A" stroke-width=".9"/><circle cx="98" cy="8" r="1.4" fill="#B89A5A"/><circle cx="122" cy="8" r="1.4" fill="#B89A5A"/></svg>';
+function dqDate(s){const t=s?new Date(s):new Date();return `${String(t.getFullYear()).slice(2)}.${String(t.getMonth()+1).padStart(2,'0')}.${String(t.getDate()).padStart(2,'0')}`;}
+function dqHead(P,at,ttl){return `<div class="frame"></div><div class="dmk">${DAMASK()}</div><div class="hd"><div class="sumi">Su misura</div><div class="date">${dqDate(at)}</div><div class="pv">Ponte Vecchio</div>
+  <div class="to">${esc(P.name||'')}様</div><div class="ttl">${ttl||'Design &amp; Quotation'}</div><div class="orn">${ORN}</div></div>`;}
+function dqFoot(P,no){return `${no?`<div class="no">No. ${esc(no)}</div>`:''}<div class="ft"><div class="co">ポンテヴェキオ</div><div class="st">${esc(P.store||'')} 店</div>${P.staff?`<div class="sf">${esc(P.staff)}</div>`:''}</div>`;}
+function dqPage(P,it){const L=(it.slot||'案A').replace('案',''),imgs=(it.images||[]).slice(0,3);
+  return `<div class="dq">${dqHead(P,it.at)}<div class="bd">
+    <div class="plan"><b>${esc(L)}：${esc(it.title||'')}</b>${it.line?`<br>内容：${esc(it.line)}`:''}</div>
+    ${imgs.length?`<div class="imgs n${imgs.length}">${imgs.map((m,i)=>`<figure><img src="${esc(m.url)}" alt="${esc(m.label||'')}">${i===0?`<figcaption>${m.ai?'Design Image':'3D Image'}</figcaption>`:''}</figure>`).join('')}</div>`:''}
+    <div class="dqprice"><div class="dqrule"></div><dl class="dqrow"><dt>お見積金額（税込）：</dt><dd class="amt">${yen(it.inc)}<small>（本体 ${yen(it.pre)}）</small></dd><dt>製作期間：</dt><dd>${esc(it.lead||'')}</dd></dl><div class="dqrule"></div></div>
+    ${it.body?`<div class="sec"><h4>【内 容】</h4><p>${esc(it.body)}</p></div>`:''}
+    ${it.caution?`<div class="sec"><h4>【ご留意点】</h4><p>${esc(it.caution)}</p></div>`:''}
+    <div class="cond"><b>お見積の条件</b>　${(it.basis||[]).map(([k,v])=>`${esc(k)} ${esc(v)}`).join('・')}<br>
+      完成時に実際の地金重量・石目で精算いたします。<b>お見積金額を上回るご請求はいたしません。</b>ご注文時に内金 ${yen(it.deposit)} を頂戴いたします。<br>
+      画像はイメージです。使用する石はすべて天然石です。お見積の有効期限：${esc(it.valid||'')}</div>
+  </div>${dqFoot(P,it.quoteNo)}</div>`;}
+function dqSettle(P){const st=P.settle;
+  return `<div class="dq">${dqHead(P,st.at)}<div class="bd">
+    <div class="plan"><b>ご精算のご案内</b><br>完成したお品物の地金重量・石目にもとづき、ご精算いたします。</div>
+    <table class="dqst"><tr><th>項目</th><th class="n">お見積時</th><th class="n">完成品</th><th class="n">増減</th></tr>${st.lines.map(l=>`<tr><td>${esc(l.n)}</td><td class="n">${esc(l.est)}</td><td class="n">${esc(l.act)}</td><td class="n">${esc(l.dir||(l.diff<-0.5?'減':l.diff>0.5?'増':'同じ'))}</td></tr>`).join('')}</table>
+    <table class="dqst"><tr><td>お見積金額（税込）</td><td class="n">${yen(st.quoteInc)}</td></tr><tr><td>最終価格（税込）${st.capped?'<div class="note2">お見積金額を上限として確定いたしました</div>':''}</td><td class="n" style="font-size:20px">${yen(st.finalInc)}</td></tr><tr><td>内金</td><td class="n">− ${yen(st.paid)}</td></tr><tr class="tot"><td>残金</td><td class="n">${yen(st.balance)}</td></tr></table>
+  </div>${dqFoot(P,'')}</div>`;}
+function fitDQ(root){root.querySelectorAll('.dqfit').forEach(f=>{const d=f.firstElementChild;if(!d||!d.classList.contains('dq')){f.style.height='';return;}
+    const bd=d.querySelector('.bd');if(bd){bd.style.transform='';const avail=1123-150-bd.offsetTop,need=bd.scrollHeight;if(need>avail)bd.style.transform=`scale(${Math.max(.72,avail/need)})`;}const s=Math.min(1,f.clientWidth/794)||1;d.style.transform=`scale(${s})`;f.style.height=(1123*s)+'px';});}
+window.addEventListener('resize',()=>{document.querySelectorAll('.dqwrap,.pbprev').forEach(fitDQ);});
+function loadScript(src){return new Promise((ok,ng)=>{if(document.querySelector(`script[src="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ng(new Error('load'));document.head.appendChild(s);});}
+function dqName(P){return `DesignQuotation_${(P.name||'').replace(/[\\/:*?"<>|\s（）()]/g,'')}様_${dqDate().replace(/\./g,'')}.pdf`;}
+async function dqPdfBlob(root){const pages=[...root.querySelectorAll('.dq')];if(!pages.length)return null;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  if(window.__assetsSettled)await window.__assetsSettled(root);await document.fonts.ready;await Promise.all([...root.querySelectorAll('img')].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r;})));
+  const pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  for(let i=0;i<pages.length;i++){const p=pages[i],tf=p.style.transform;p.style.transform='none';
+    const cv=await html2canvas(p,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:794,height:1123,windowWidth:794});p.style.transform=tf;
+    if(i)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);}
+  return pdf.output('blob');}
+async function dqDocPdf(P,btn){const t=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='PDFを作っています…';}
+  const box=document.createElement('div');box.style.cssText='position:fixed;left:-12000px;top:0;width:820px';box.innerHTML=(P.settle?[dqSettle(P)]:[]).concat((P.items||[]).map(it=>dqPage(P,it))).map(p=>`<div class="dqfit" style="max-width:none;width:794px">${p}</div>`).join('');
+  document.body.appendChild(box);fitDQ(box);let blob=null;
+  try{blob=await dqPdfBlob(box);}catch(e){toast('PDFを作れませんでした（'+(e.code||e.message||'')+'）');}
+  box.remove();if(btn){btn.disabled=false;btn.textContent=t;}return blob;}
+async function dqPdf(root,filename,btn){
+  if(!CAP.dl)return toast('この画面ではPDFを保存できません');
+  if(btn){btn.disabled=true;btn.textContent='PDFを作っています…';}
+  try{const b=await dqPdfBlob(root);if(b)await saveFile(filename,b);}catch(e){toast('PDFを作れませんでした（'+(e.code||e.message||'')+'）');}
+  if(btn){btn.disabled=false;btn.textContent='PDFで保存';}}
+
+/* ═════════ 再描画 ═════════ */
+const FLOWT={inbox:'① 受信カルテ',sketch:'② デザイン画',image:'③ 画像生成',design:'④ 仕様・3D',est:'⑤ 見積',publish:'⑥ 見積書'};
+function renderFlow(){const sec=$('p-'+cur);if(!sec||!FLOWT[cur])return;let f=sec.querySelector(':scope>.flownav');if(!f){f=document.createElement('div');f.className='flownav';sec.appendChild(f);}
+  const prev={sketch:'inbox',image:'sketch',design:'image',est:'design',publish:'est'}[cur],P=prev?`<button class="btn ghost" data-go="${prev}">← ${FLOWT[prev]}</button>`:'<span></span>';let N='';
+  f.hidden=!CASE;if(!CASE){f.innerHTML='';return;}
+  if(cur==='inbox')N=`<button class="btn gold" data-go="sketch">${FLOWT.sketch}へ →</button>`;
+  else if(cur==='sketch')N=`<button class="btn gold" id="fnSk">${(CASE.img.sketches||[]).length?'このデザイン画で ③ 画像生成へ →':'デザイン画なしで ③ 画像生成へ →'}</button>`;
+  else if(cur==='image')N=`<button class="btn gold" data-go="design">${FLOWT.design}へ →</button>`;
+  else if(cur==='design'){const w=geom(CASE.d).wTotal;N=`<button class="btn ghost" data-go="est">重量は渡さず ⑤へ</button><button class="btn gold" id="fnW">3D推定 ${f2(w)}g＋余裕${Math.round(wM()*100)}%＝${f2(wQuote())}g を見積に渡して ⑤へ →</button>`;}
+  else if(cur==='est')N=CASE.quote?`<button class="btn gold" data-go="publish">${FLOWT.publish}へ →</button>`:`<button class="btn gold" id="fnIssue" ${$('q_issue').disabled?'disabled':''}>見積を発行して ⑥見積書へ →</button>`;
+  else if(cur==='publish')N=`<span class="muted">「公開して店舗に送る」で、店舗にPDF付きの見積書が届きます。</span>`;
+  f.innerHTML=`${P}<div class="btns">${N}</div>`;
+  f.querySelector('#fnSk')?.addEventListener('click',()=>{const I=CASE.img;if(I.sketches.length)I.base='sketch';else if(I.base==='sketch')I.base='text';I.step=1;touch();go('image');});
+  f.querySelector('#fnW')?.addEventListener('click',()=>{CASE.q.w=wQuote();touch();toast(`見積の地金重量を ${f2(CASE.q.w)}g にしました（3D推定＋見立て余裕）`);go('est');});
+  f.querySelector('#fnIssue')?.addEventListener('click',()=>{issueQuote();if(CASE.quote)go('publish');});}
+function render(){
+  if(line==='store'){renderStore();return;}
+  if(line==='client'){renderClient();return;}
+  renderStrip();syncBinds();
+  if(!CASE&&!['inbox','master','issues','archive'].includes(cur)){cur='inbox';document.querySelectorAll('#hqLine section.pane').forEach(s=>s.classList.toggle('on',s.id==='p-inbox'));}
+  ({inbox:renderInbox,sketch:renderSketch,design:renderDesign,image:renderImage,est:renderEst,publish:renderPublish,order:renderOrder,settle:renderSettle,master:renderMaster,issues:renderIssues,archive:()=>renderArchive($('hqArchive'))})[cur]?.();renderFlow();}
+
+buildTabs();initStore();if(kRestore())setTimeout(()=>toast('記入途中のカルテを復元しました'),800);initDesign();initSketch();initImage();initEst();initPublish();initOrder();initSettle();initMaster();init3D();
+$('caseSel').onchange=e=>{openCase(e.target.value);};
+const h0=location.hash.slice(1);
+if(h0.startsWith('client')){clId=h0.split('-').slice(1).join('-')||null;line='client';}else if(h0==='store')line='store';else if(TABKEYS.includes(h0))cur=h0;
+document.body.classList.add('l-'+line);document.querySelectorAll('.lines button').forEach(b=>b.classList.toggle('on',b.dataset.line===line));
+if(line==='hq')go(cur);else render();
+window.addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(t.startsWith('client')){clId=t.split('-').slice(1).join('-')||clId;setLine('client',true);render();}else if(t==='store')setLine('store');else if(TABKEYS.includes(t)&&t!==cur)go(t);});
+connect();
+</script>

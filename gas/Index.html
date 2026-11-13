@@ -1,0 +1,620 @@
+<title>Sumisura 受注アプリ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Pinyon+Script&family=Shippori+Mincho:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<?!= include('Styles'); ?>
+
+<header class="top"><div class="topin wrap">
+  <div class="brand"><b>Ponte Vecchio</b><span>SUMISURA</span></div>
+  <span class="conn" id="conn">接続中…</span><span class="conn" id="gasUser" style="opacity:.8"></span>
+  <div class="lines" role="group" aria-label="ライン切替"><button data-line="store">店舗</button><button data-line="hq">本社</button><button data-line="client">お客様</button></div>
+</div></header>
+
+<!-- ═════════ 店舗ライン：ご要望カルテ（お客様に記入いただく） ═════════ -->
+<div id="storeLine"><main class="wrap">
+  <div class="card stack" id="kArchive" hidden></div>
+  <div class="kwrap" id="kWrap">
+    <div class="khead">
+      <div><p class="keyb">Su misura</p><h1 class="kh1">あなただけのジュエリー<br class="sp">ご要望シート</h1>
+      <p class="klead">わかる範囲でかまいません。迷うところは「おまかせ」「相談したい」をお選びください。</p></div>
+      <div class="kst2"><span id="kState"></span><span id="kSave" class="ksave"></span></div>
+    </div>
+    <div class="card stack khub" id="kHub" hidden></div>
+    <ol class="ksteps" id="kSteps"></ol>
+
+    <div class="card kwiz" id="kForm">
+      <!-- 1 -->
+      <section class="kpage" data-p="1">
+        <h2 class="kq">どんなジュエリーをお探しですか？</h2>
+        <div class="kcards c3" id="k_item"></div>
+        <div class="kfield" id="k_sizeL"><span class="kl">リングのサイズ</span>
+          <div class="krow"><select id="k_size" class="kbig"></select><span class="kmuted">わからない場合は「わからない」のままで、店頭でお測りします。</span></div></div>
+        <h3 class="kq2">どなたの、どんな日のためですか？</h3>
+        <div class="kchips" id="k_purpose"></div>
+      </section>
+      <!-- 2 -->
+      <section class="kpage" data-p="2">
+        <h2 class="kq">どんなデザインをお考えですか？</h2>
+        <p class="kmuted">思い浮かぶことを、そのままの言葉でお書きください。下のことばを押すと、文章に足せます。</p>
+        <textarea id="k_req" class="kreqbox" placeholder="例）結婚10周年の記念に。普段の服にも合う、上品で控えめなデザインが好きです。横から見たときに石の台がすっきりしているものがいいです。"></textarea>
+        <div class="khint" id="k_hint"></div>
+        <h3 class="kq2">お好きな雰囲気（2つまで）</h3>
+        <div class="kcards c3 kmood" id="k_moods"></div>
+        <h3 class="kq2">イメージに近い画像（6枚まで）</h3>
+        <div class="drop kdrop" id="k_ddrop" tabindex="0">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="28" rx="4"/><circle cx="18" cy="21" r="4"/><path d="M6 34l11-10 9 8 6-5 10 9"/></svg>
+          <b>雑誌・SNS・Webで見つけた「こんな感じ」の画像</b>
+          <span>ここに<b>貼り付け</b>（Ctrl/⌘+V）・<b>ドラッグ</b>、または</span>
+          <label class="btn gold">画像を選ぶ・写真を撮る<input type="file" id="k_dimg" accept="image/*" multiple hidden></label>
+        </div>
+        <div class="drefs kdrefs" id="k_drefs"></div>
+      </section>
+      <!-- 3 -->
+      <section class="kpage" data-p="3">
+        <h2 class="kq">お好きな地金の色は？</h2>
+        <div class="kcards c5 kmetal" id="k_mcolor"></div>
+        <div class="kfield" id="k_karatL"><span class="kl">ゴールドの品位</span><div class="kchips" id="k_karat"></div></div>
+        <h3 class="kq2">中央の石は？</h3>
+        <div class="kcards c5" id="k_stone"></div>
+        <label class="kfield"><span class="kl">石の大きさ・種類（わかれば）</span><input type="text" id="k_stoneNote" class="kbig" placeholder="例）0.3ct前後／ルビー／誕生石"></label>
+        <p class="kmuted">使用する石はすべて天然石です。</p>
+      </section>
+      <!-- 4 -->
+      <section class="kpage" data-p="4">
+        <h2 class="kq">お手持ちの石やジュエリーを使いますか？</h2>
+        <div class="kcards c2" id="k_cs"></div>
+        <div id="k_csBox" class="stack">
+          <label class="kfield"><span class="kl">お持ちの品について</span><textarea id="k_csOther" class="kbig" placeholder="例）母から譲り受けた指輪のダイヤを使いたい／K18の指輪は地金として使いたい"></textarea></label>
+          <div class="kfield"><span class="kl">お品物の写真・鑑別書</span>
+            <label class="btn ghost" style="align-self:flex-start">写真を選ぶ・撮る<input type="file" id="k_img" accept="image/*,.pdf,application/pdf" multiple hidden></label>
+            <div class="refs" id="k_refs"></div></div>
+          <div class="kstaff"><p class="kstaffh">販売員が記入</p>
+            <div class="fr3">
+              <label class="f"><span>石の種類</span><select id="k_csType"></select></label>
+              <label class="f"><span>形</span><select id="k_csShape"><option>ラウンド</option><option>オーバル</option><option>ペアシェイプ</option><option>クッション</option><option>エメラルドカット</option><option>マーキス</option><option>ハートシェープ</option><option>その他</option></select></label>
+              <label class="f"><span>状態</span><select id="k_csCond"><option>未確認</option><option>良好</option><option>欠け・傷あり</option></select></label>
+              <label class="f"><span>縦（mm）</span><input type="number" id="k_csL" step="0.01" min="0"></label>
+              <label class="f"><span>横（mm）</span><input type="number" id="k_csW" step="0.01" min="0"></label>
+              <label class="f"><span>高さ（mm）</span><input type="number" id="k_csH" step="0.01" min="0"></label>
+              <label class="f"><span>重さ（ct）</span><input type="number" id="k_csCt" step="0.01" min="0"></label>
+              <label class="f"><span>鑑別書</span><select id="k_csCert"><option>なし</option><option>あり</option></select></label>
+            </div>
+            <p class="muted" style="margin:6px 0 0">ラウンドは縦・横とも直径。高さはテーブル面から先端（キューレット）まで。</p>
+          </div>
+        </div>
+      </section>
+      <!-- 5 -->
+      <section class="kpage" data-p="5">
+        <h2 class="kq">ご予算はどのくらいですか？（税込）</h2>
+        <div class="kchips kbud" id="k_bud"></div>
+        <label class="kfield"><span class="kl">金額を直接入れる（上限・円）</span><input type="number" id="k_bmax" class="kbig" step="10000" min="0" inputmode="numeric" placeholder="例）300000"></label>
+        <h3 class="kq2">いつ頃までにご入用ですか？</h3>
+        <div class="kchips" id="k_dueC"></div>
+        <label class="kfield"><span class="kl">ご希望の日</span><input type="date" id="k_due" class="kbig"></label>
+        <p class="kmuted">ご注文からお渡しまで、通常2〜3か月ほどいただいております。</p>
+      </section>
+      <!-- 6 -->
+      <section class="kpage" data-p="6">
+        <h2 class="kq">最後に、お名前をお聞かせください</h2>
+        <label class="kfield"><span class="kl">お名前（フルネーム）</span><input type="text" id="k_name" class="kbig" autocomplete="off" placeholder="例）山田 花子"></label>
+        <h3 class="kq2">ご記入内容の確認</h3>
+        <div class="ksum" id="k_sum"></div>
+        <div class="kstaff"><p class="kstaffh">販売員が記入</p>
+          <div class="fr">
+            <label class="f req"><span>店舗</span><select id="k_store"></select></label>
+            <label class="f req"><span>担当販売員</span><input type="text" id="k_staff"></label>
+          </div>
+        </div>
+      </section>
+
+      <div class="knav">
+        <button class="btn ghost kbtn" id="k_prev">← 戻る</button>
+        <span class="kpg" id="k_pg"></span>
+        <button class="btn gold kbtn" id="k_next">次へ →</button>
+        <button class="btn gold kbtn" id="k_send">本社に送る</button>
+      </div>
+      <div class="checks" id="k_checks" style="margin-top:14px"></div>
+    </div>
+
+    <details class="card kadmin" id="kAdmin">
+      <summary>販売員メニュー（送ったカルテ・見積書PDF）</summary>
+      <div class="stack" style="margin-top:12px">
+        <div class="btns"><button class="btn sm" id="k_arch">案件アーカイブ（一覧・受注／ボツ）</button><button class="btn ghost sm" id="k_saveDraft">下書き保存</button><button class="btn ghost sm" id="k_new">新しいカルテ</button></div>
+        <div class="list" id="k_list"></div>
+        <p class="muted" style="margin:0">お客様が記入中のときは、この一覧を閉じておいてください（ほかのお客様のお名前が表示されます）。店舗では原価は見えません。</p>
+      </div>
+    </details>
+  </div>
+</main></div>
+
+<!-- ═════════ 本社ライン ═════════ -->
+<div id="hqLine">
+<div class="casestrip"><div class="csin wrap">
+  <select id="caseSel" aria-label="案件"></select>
+  <div class="pipe" id="pipe"></div>
+  <div class="next"><b>次にやること</b><span id="nextTxt"></span><button class="btn sm" id="nextBtn"></button></div>
+</div></div>
+<nav class="steps" aria-label="本社の作業"><div class="stepin wrap" id="tabs"></div></nav>
+<main class="wrap">
+
+<!-- ① 受信 -->
+<section class="pane" id="p-inbox">
+  <h1 class="ph">受信カルテ・案件</h1>
+  <p class="lead">店舗から届いたカルテの中身を確認し、「案件にする」で作業を始めます。案件は ②デザイン画（手書き） → ③画像生成 → ④仕様・3D → ⑤見積 → ⑥見積書 の順に、各ページ下のボタンで進めます。</p>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card stack tgt" id="in_orders" hidden></div>
+      <div class="card stack tgt" id="in_msgs" hidden></div>
+      <div class="card stack"><h2>新しく届いたカルテ</h2><div style="display:flex;flex-wrap:wrap;gap:6px" id="in_legend"></div><div class="list" id="in_new"></div></div>
+      <div class="card stack"><h2>作業中・完了の案件</h2><div class="list" id="in_cases"></div></div>
+    </div>
+    <div class="card stack kdet" id="in_detail"></div>
+  </div>
+</section>
+
+<!-- ② デザイン -->
+<section class="pane" id="p-design">
+  <h1 class="ph">仕様・3D</h1>
+  <p class="lead">見積の土台になる型・寸法・石を決めます。画像生成で選んだ案に合わせて調整すると、3Dと4面サムネがその場で描き直され、推定重量を見積の参考値に使えます。</p>
+  <div class="work">
+    <div class="card stack">
+      <div><h3 style="margin-top:0">アイテム</h3><div class="seg" id="d_item"></div></div>
+      <div><h3>型</h3><div class="seg" id="d_model"></div></div>
+      <div class="fr">
+        <label class="f">地金<select id="d_metal"></select></label>
+        <label class="f">仕上げ<select id="d_finish"><option>鏡面</option><option>サテン</option><option>槌目</option><option>コンビ</option></select></label>
+      </div>
+      <div id="ringOnly" class="stack">
+        <div class="fr">
+          <label class="f">リングサイズ（号）<select id="d_size"></select></label>
+          <label class="f">腕の断面<select id="d_prof"><option value="koma">甲丸</option><option value="flat">平打ち</option></select></label>
+        </div>
+        <label class="f">腕幅 <b id="o_w"></b><input type="range" id="d_w" min="1.2" max="4" step="0.1"></label>
+        <label class="f">腕厚 <b id="o_t"></b><input type="range" id="d_t" min="1.0" max="2.4" step="0.1"></label>
+      </div>
+      <div id="freeCtl" class="stack">
+        <div class="fr3">
+          <label class="f">幅 mm<input type="number" id="d_W" step="0.1" min="0"></label>
+          <label class="f">高 mm<input type="number" id="d_H" step="0.1" min="0"></label>
+          <label class="f">厚 mm<input type="number" id="d_D" step="0.1" min="0"></label>
+        </div>
+        <label class="f">骨格の地金重量（g・見込み）<input type="number" id="d_skel" step="0.05" min="0"></label>
+      </div>
+      <div><h3>中石</h3><div class="seg" id="d_ctype"><button data-v="dia">ダイヤ</button><button data-v="color">色石</button><button data-v="consign">お預り石</button><button data-v="none">なし</button></div></div>
+      <div id="ctDia"><label class="f">重さ <b id="o_ct"></b><input type="range" id="d_ct" min="0.1" max="3" step="0.01"></label></div>
+      <div id="ctCol" class="fr"><label class="f">石種<select id="d_cstone"></select></label><label class="f">直径（mm）<input type="number" id="d_cmm" step="0.1" min="2" max="12"></label></div>
+      <div id="ctCon" class="note"></div>
+      <div><h3>石座の高さ</h3><div class="seg" id="d_seth"><button data-v="std">標準</button><button data-v="low">低め</button></div></div>
+      <div id="haloCtl"><label class="f">取り巻きメレの径 <b id="o_m"></b><input type="range" id="d_m" min="0.8" max="1.8" step="0.1"></label></div>
+      <div id="pendCtl"><label class="f">チェーン<select id="d_chain"></select></label></div>
+    </div>
+    <div class="stack viewcol">
+      <div class="card stack tgt" id="d_target"></div>
+      <div class="viewer" id="viewer"><div class="vhud" id="vhud"></div><div class="vbar"><button data-v="iso">斜め</button><button data-v="main">主意匠面</button><button data-v="side">側面</button><button data-v="spin">回転</button></div></div>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="card"><dl class="spec" id="specList"></dl></div>
+    </div>
+    <div class="stack">
+      <div class="card stack">
+        <h2>推定重量（3D）</h2>
+        <div class="kpis" style="grid-template-columns:1fr 1fr" id="wKpi"></div>
+        <div class="tbl" id="wBreak"></div>
+        <button class="btn" id="useW">余裕を足して見積に使う</button>
+        <p class="muted" id="useWNote" style="margin:0"></p>
+      </div>
+      <div class="card"><h2>実現性チェック</h2><div class="checks" id="dChecks"></div></div>
+      <div class="card stack">
+        <h2>意匠アンカー</h2>
+        <p class="muted" style="margin:0">守る形・石配置・留めを言葉で固定します。「必ず保持」は画像生成の仕上げ・修正の指示文に入り、制作指示書にも載ります。</p>
+        <div id="ancList"></div>
+        <div class="btns"><button class="btn ghost sm" id="addAnc">アンカーを追加</button></div>
+        <label class="f">デザインの方向性<textarea id="d_dir"></textarea></label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ② デザイン画（手書き） -->
+<section class="pane" id="p-sketch">
+  <h1 class="ph">デザイン画（手書き）</h1>
+  <p class="lead">本社のデザイナーが描いたデザイン画を取り込みます。次の「③画像生成」で、このデザイン画のとおりの形を、お客様にお見せできる写真のような画像にします。デザイン画がない案件は、何も入れずに③へ進めます（希望デザイン画像・3D画像・言葉だけから作れます）。</p>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card stack">
+        <h2>デザイン画を入れる（4枚まで・1枚10MBまで）</h2>
+        <div class="drop" id="sk_drop" tabindex="0">ここに<b>貼り付け（Ctrl/⌘+V）</b>、<b>ドラッグ</b>、または <label class="lnk">ファイルを選ぶ・写真を撮る<input type="file" id="sk_in" accept="image/png,image/jpeg,image/webp" multiple hidden></label></div>
+        <div class="refs" id="sk_list"></div>
+        <label class="f"><span>デザイン画の補足（絵で伝わりにくいこと：石の数・留め方・寸法・仕上げなど）</span><textarea id="sk_note" placeholder="例：中石は6本爪。腕の両肩にメレ3石ずつ（計6石）、彫り留め。腕は甲丸で幅2.2mm。石座の横は透かし。"></textarea></label>
+        <p class="muted" style="margin:0">きれいに読み取らせるコツ：白い紙に濃い線で描く／真上から、影が入らないように撮る（スキャンが最良）／1枚に1つの向き（正面・側面など）／寸法や注記は上の補足欄に文字で書く。</p>
+      </div>
+      <div class="card"><h2>次にやること</h2><div class="checks" id="sk_next"></div></div>
+    </div>
+    <div class="card stack srcA"><h2>お客様のご希望（カルテ）</h2><div id="sk_karte"></div></div>
+  </div>
+</section>
+
+<!-- ③ 画像生成 -->
+<section class="pane" id="p-image">
+  <h1 class="ph">画像生成</h1>
+  <p class="lead">お客様に見せるイメージ画像を作り、決めた画像の内容を見積に渡します。<b>デザイン画（手書き）・希望デザイン画像（実物の写真など）・3D画像・言葉だけ</b>のどれをもとに作るかを選べます。「Geminiで自動生成」を押すとその場で取り込まれます。Gemini・Google Flow・ChatGPT（GPT Image）など、ほかの画像AIで作るときは、ボタンで指示をコピーして貼り付け、できた画像をここに貼り付けてください。</p>
+  <ol class="istep" id="iStep"></ol>
+
+  <!-- STEP 1 -->
+  <div class="ipanel" data-s="1">
+    <p class="muted" style="margin:0 0 12px">生成の依頼は <b>A お客様のご希望（カルテ）</b> に <b>B 本社の補正</b> を重ねて作ります。お客様の言葉はそのまま残し、構造・予算・品位の調整は本社の補正として書き分けます。食い違うときは本社の補正が優先されます。</p>
+    <div class="grid2">
+      <div class="card stack srcA">
+        <div class="tgth"><h2><span class="srcTag a">A</span>お客様のご希望（カルテ）</h2><button class="btn ghost sm" data-go="inbox">カルテ全体</button></div>
+        <div id="i_karte"></div>
+      </div>
+      <div class="card stack srcB">
+        <h2><span class="srcTag b">B</span>本社の補正</h2>
+        <div class="fr">
+          <label class="f"><span>アイテム</span><select id="i_item"></select></label>
+          <label class="f"><span>地金</span><select id="i_metal"></select></label>
+          <label class="f"><span>中石</span><select id="i_ctype"><option value="dia">天然ダイヤモンド</option><option value="color">天然色石</option><option value="consign">お預り石</option><option value="none">中石なし</option></select></label>
+          <label class="f" id="i_ctL"><span>中石の大きさ（ct）</span><input type="number" id="i_ct" step="0.05" min="0.1" max="3"></label>
+          <label class="f" id="i_csL"><span>色石の種類</span><select id="i_cstone"></select></label>
+        </div>
+        <h3>雰囲気（1つ）<small class="muted" id="i_moodK" style="font-weight:400"></small></h3>
+        <div class="styles" id="i_styles"></div>
+        <label class="f"><span>本社からの補正・追加の指示（日本語）</span><textarea id="i_hq" placeholder="例：普段使いのため石座は低めに。腕は2.2mm以上でしっかり。メレは片側5石まで。"></textarea></label>
+        <div class="khint" id="i_hqChips"></div>
+        <div class="briefbox"><div class="btns"><button class="btn sm" id="i_brief">ご要望をデザイン指示に整える（Gemini）</button></div><div id="i_briefOut"></div></div>
+        <label class="chk1"><input type="checkbox" id="i_useBud"> ご予算（<span id="i_budTxt"></span>）に見合う作りにするよう指示に入れる</label>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card stack ask">
+        <h2>頼む内容（A＋B）</h2>
+        <div><h3 style="margin-top:0">何をもとに作りますか</h3><div class="seg" id="i_base"></div></div>
+        <p class="muted" style="margin:0"><span id="i_baseHint"></span> 光・背景・質感はPonte Vecchioの見え方に固定されます。</p>
+        <div id="i_summary" class="asksum"></div>
+        <button class="btn gold wide" data-istep="2" id="i_next1">次へ：3案を作る</button>
+      </div>
+      <div class="card stack">
+        <h2>希望デザイン画像・参考資料</h2>
+        <p class="muted" style="margin:0">カルテの「イメージに近い画像」（金枠）とお預り品の写真です。実物の写真などを足すときは「ファイルを追加」で入れます。<b>生成画面で指示文と一緒に添付</b>してください（気に入ったところは指示文に自動で入ります）。</p>
+        <button class="btn sm" id="refImp" hidden></button>
+        <label class="btn ghost sm" style="align-self:flex-start">ファイルを追加<input type="file" id="refIn" accept="image/*,.pdf,application/pdf" multiple hidden></label>
+        <div class="refs" id="refs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="ipanel" data-s="2">
+    <div class="grid2">
+      <div class="card stack">
+        <h2 id="i_h2a">3案を作る</h2>
+        <p class="muted" style="margin:0">使う画像AIを選びます。どれを選んでも、指示文は同じ内容がコピーされます。</p>
+        <div class="svc" id="i_svc"></div>
+        <ol class="howto">
+          <li><div class="btns"><button class="btn gold" id="go1">指示をコピーして<span class="svcName">Gemini</span>を開く</button><button class="btn" id="gen1" hidden>Geminiで自動生成</button><button class="btn ghost sm" id="i_dlBase" hidden>添付する画像を保存</button></div></li>
+          <li><span class="svcName">Gemini</span>の入力欄に貼り付けて送ります。<span id="refHint"></span><br><small class="muted" id="manusHint">「Geminiで自動生成」が使えるときは、コピー・貼り付けなしで画像が右の欄に入ります。</small></li>
+          <li>できた画像をコピーし、右の欄に貼り付けるか「ファイルを選ぶ」で取り込みます。</li>
+        </ol>
+        <details><summary class="muted">指示文の中身を見る</summary><pre class="prompt" id="prompt1"></pre></details>
+        <button class="btn ghost sm" data-istep="1" style="align-self:flex-start">← 依頼内容に戻る</button>
+      </div>
+      <div class="card stack">
+        <h2 id="i_h2b">できた3案</h2>
+        <div class="drop" data-drop="sheet" tabindex="0">ここに<b>貼り付け（Ctrl/⌘+V）</b>、<b>ドラッグ</b>、または <label class="lnk">ファイルを選ぶ<input type="file" data-file="sheet" accept="image/png,image/jpeg,image/webp" hidden></label></div>
+        <div id="sheetBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="ipanel" data-s="3">
+    <div class="grid2">
+      <div class="card stack">
+        <h2>選んだ案を仕上げる</h2>
+        <div id="pickBox"></div>
+        <label class="f"><span>仕上げで加えたいこと（任意・日本語）</span><textarea id="i_add" placeholder="例：中石をもう少し高く。腕は細めに。"></textarea></label>
+        <div class="btns"><button class="btn gold" id="go2">仕上げの指示をコピーして<span class="svcName">Gemini</span>を開く</button><button class="btn" id="gen2" hidden>Geminiで自動生成</button></div>
+        <p class="muted" style="margin:0">生成画面では、<b>3案の画像を添付</b>してから貼り付けてください。できた画像は右の欄へ。</p>
+        <details><summary class="muted">指示文の中身を見る</summary><pre class="prompt" id="prompt2"></pre></details>
+        <h3>見積の仕様に合わせた確定画像（④仕様・3Dの後）</h3>
+        <p class="muted" style="margin:0">④で型・寸法・石数を決めた後に作ります。石の数と大きさ、腕の寸法を数字で指定し、3Dの基準画像で形を合わせるので、<b>画像と見積の差が小さく</b>なります。</p>
+        <div class="btns"><button class="btn ghost sm" id="save3d">3D基準画像を保存</button><button class="btn" id="go4">確定画像の指示をコピーして開く</button><button class="btn" id="gen4" hidden>Geminiで自動生成</button></div>
+        <p class="muted" style="margin:0">生成画面では、<b>①採用中の画像 ②保存した3D基準画像</b>の順に添付してから貼り付けます。できた画像を取り込んで「採用」し、前の画像の採用を外します。</p>
+        <h3>別の角度・直したいところ</h3>
+        <div class="btns"><button class="btn ghost sm" data-more="side">側面を作る</button><button class="btn ghost sm" data-more="top">真上を作る</button></div>
+        <label class="f"><span>直したいところ（一文で）</span><textarea id="i_fix" placeholder="例：メレダイヤを外して、腕をつや消しに"></textarea></label>
+        <div class="btns"><button class="btn ghost" id="go3">修正の指示をコピーして開く</button><button class="btn" id="gen3" hidden>Geminiで自動生成</button></div>
+        <p class="muted" style="margin:0">角度違い・修正は、<b>採用中の画像を添付</b>してから貼り付けます。</p>
+        <details><summary class="muted">指示文の中身を見る</summary><pre class="prompt" id="prompt3">（ボタンを押すと表示されます）</pre></details>
+        <button class="btn ghost sm" data-istep="2" style="align-self:flex-start">← 3案に戻る</button>
+      </div>
+      <div class="stack">
+        <div class="card stack">
+          <h2>仕上がった画像</h2>
+          <div class="drop" data-drop="final" tabindex="0">ここに<b>貼り付け（Ctrl/⌘+V）</b>、<b>ドラッグ</b>、または <label class="lnk">ファイルを選ぶ<input type="file" data-file="final" accept="image/png,image/jpeg,image/webp" hidden></label></div>
+          <div class="vers" id="vers"></div>
+          <p class="muted" style="margin:0">「採用」した画像（最大3枚）が、お客様の見積書に載ります。</p>
+        </div>
+        <button class="btn gold wide" data-istep="4">次へ：見積に渡す</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="ipanel" data-s="4">
+    <div class="grid2">
+      <div class="card stack">
+        <h2>画像の仕様を読み取る</h2>
+        <div class="vers" id="vers4"></div>
+        <button class="btn" id="readImg">採用画像から仕様を読み取る</button>
+        <p class="muted" style="margin:0">Geminiが画像から石の数・大きさ・地金を拾います。推定なので、数字を確かめてから見積に送ってください。</p>
+        <button class="btn ghost sm" data-istep="3" style="align-self:flex-start">← 仕上げに戻る</button>
+      </div>
+      <div class="card stack">
+        <h2>仕様カード</h2>
+        <div id="readOut"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ④ 見積 -->
+<section class="pane" id="p-est">
+  <h1 class="ph">見積</h1>
+  <p class="lead">見積の土台になる<b>地金重量</b>と<b>中石</b>は、その都度入力します。工賃・地金単価・脇石などの単価は原価マスターから入りますが、<b>マスターが未入力のものは、この画面でその都度入力</b>でき、ボタンひとつで原価マスターにも反映できます。発行した見積の条件と価格は固定され、完成時の精算の基準になります。</p>
+  <div class="card tgt tgtS" id="q_target" style="margin-bottom:14px"></div>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card stack">
+        <h2>見積の条件</h2>
+        <div class="fr">
+          <label class="f">地金<input type="text" id="q_metalShow" disabled></label>
+          <label class="f">地金重量（g）<input class="big" type="number" id="q_w" step="0.01" min="0"></label>
+        </div>
+        <p class="muted" style="margin:-4px 0 0" id="q_wHint"></p>
+        <div id="q_center" class="stack"></div>
+        <h3 style="margin-bottom:0">脇石（原価マスターの1個単価）</h3>
+        <div class="tbl" id="q_sides"></div>
+        <div class="btns"><select id="q_addSel" style="width:auto;max-width:260px"></select><button class="btn ghost sm" id="q_add">脇石を追加</button></div>
+        <h3 style="margin-bottom:0">追加加工（工場見積）</h3>
+        <div class="tbl" id="q_extras"></div>
+        <div class="btns"><button class="btn ghost sm" id="q_addx">行を追加</button></div>
+      </div>
+      <div class="card stack">
+        <h2>この案件で使う単価（その都度入力）</h2>
+        <div class="tbl" id="q_costs"></div>
+        <div class="btns"><button class="btn ghost sm" id="q_ovAll">入力した単価をすべて原価マスターに反映</button></div>
+        <p class="muted" style="margin:0">反映した数字は、原価マスターでは<b>「仮値」</b>として入ります（地金・パーツ）。正式な単価が決まったら、原価マスターで上書きしてください。発行済みの見積は変わりません。</p>
+      </div>
+      <details class="card"><summary style="cursor:pointer;font-weight:700;color:var(--head)">原価の内訳（計算式つき）</summary><div class="tbl" id="q_tbl" style="margin-top:10px"></div></details>
+    </div>
+    <div class="stack">
+      <div class="price" id="q_price"></div>
+      <div class="card"><h2>発行前の確認</h2><div class="checks" id="q_ready"></div></div>
+      <div class="card stack">
+        <div class="btns"><button class="btn gold" id="q_issue">この条件で見積を発行</button></div>
+        <div id="q_issued"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ 提示 -->
+<section class="pane" id="p-publish">
+  <h1 class="ph">お客様への見積書（Design &amp; Quotation）</h1>
+  <p class="lead">発行した見積から、お客様にお渡しする見積書を作ります。文章は自動で下書きされるので、必要なところだけ直してください。原価・粗利・推定重量などの社内情報は載りません。</p>
+  <div class="grid2">
+    <div class="card stack">
+      <div class="fr">
+        <label class="f">提案の枠<select id="pb_slot"><option>案A</option><option>案B</option><option>案C</option></select></label>
+        <label class="f">製作期間<input type="text" id="pb_lead"></label>
+      </div>
+      <label class="f">見出し（例：K18PG リング枠の制作）<input type="text" id="pb_title"></label>
+      <label class="f">内容（1行）<input type="text" id="pb_line"></label>
+      <label class="f">【内容】<textarea id="pb_body" style="min-height:92px"></textarea></label>
+      <label class="f">【ご留意点】（任意）<textarea id="pb_caution" placeholder="例：お預りの石は加工前に状態を確認いたします。"></textarea></label>
+      <div class="btns"><button class="btn ghost sm" id="pb_auto">文章を自動の下書きに戻す</button></div>
+      <h3>載せる画像（押した順に最大3枚）</h3>
+      <div class="pbimgs" id="pb_imgs"></div>
+      <div class="checks" id="pb_checks"></div>
+      <div class="btns"><button class="btn gold" id="pb_go">公開して店舗に送る（PDF付き）</button><button class="btn ghost" id="pb_pdf">PDFをこの端末に保存</button><button class="btn ghost" id="pb_view">お客様ページを開く</button></div>
+      <p class="muted" style="margin:0">店舗では、カルテ一覧の「見積書PDF」から保存・印刷し、そのまま商談に使えます。</p>
+      <h3>公開中の見積書</h3>
+      <div id="pb_list"></div>
+    </div>
+    <div class="pbprev"><p class="muted" style="margin:0 0 8px">プレビュー（実際の見積書と同じ見た目です）</p><div class="dqfit" id="pb_prev"></div></div>
+  </div>
+</section>
+
+<!-- ⑥ 受注 -->
+<section class="pane" id="p-order">
+  <h1 class="ph">受注・内金・制作指示</h1>
+  <p class="lead">受注時に見積額（税込）の50％を内金としていただきます。工場への制作指示書には、見積に使った地金重量・石目を基準として載せます。</p>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card stack tgt" id="o_req" hidden></div>
+      <div class="card stack">
+        <h2>内金</h2>
+        <div class="kpis" id="o_kpi" style="grid-template-columns:repeat(3,minmax(0,1fr))"></div>
+        <div class="fr"><label class="f">受注日<input type="date" id="o_date"></label><label class="f">内金 受領額（円）<input type="number" id="o_paid" step="100" min="0"></label></div>
+        <div class="btns"><button class="btn gold" id="o_go">受注を確定する</button></div>
+      </div>
+      <div class="card"><h2>受注前の確認</h2><div id="o_todo"></div></div>
+      <div class="card"><h2>納期</h2><div class="tbl" id="o_lead"></div></div>
+    </div>
+    <div class="card"><h2>制作指示書（工場用）</h2><div id="o_sheet"></div></div>
+  </div>
+</section>
+
+<!-- ⑦ 精算 -->
+<section class="pane" id="p-settle">
+  <h1 class="ph">完成・精算</h1>
+  <p class="lead">完成品の実際の地金重量と石目を入れると、見積時の単価のまま差額を計算します。</p>
+  <div class="rule" style="margin-bottom:14px"><b>精算のルール</b>　差額を調整した金額が見積額を下回れば、その金額で精算します。上回った場合は、<b>初回の見積額を最終価格</b>とし、お客様に見積以上の請求はしません（粗利が下がっても見積を保証）。</div>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card stack"><h2>実際の値を入れる</h2><div class="tbl" id="s_tbl"></div></div>
+      <div class="card stack"><h2>3D推定の精度</h2><div id="s_acc"></div></div>
+    </div>
+    <div class="stack">
+      <div class="card stack"><h2>精算書</h2><div id="s_stmt"></div>
+        <div class="btns"><button class="btn gold" id="s_go">精算を確定する</button><button class="btn ghost" id="s_pub">お客様ページに精算を表示</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑧ 原価マスター -->
+<section class="pane" id="p-master">
+  <h1 class="ph">原価マスター</h1>
+  <p class="lead">空欄の項目は、見積の画面でその都度入力し「マスターに反映」を押すと、ここに入ります（この画面で直接入れても構いません）。紫の「仮値」は、ひとまず入れた数字の印です。脇石は<b>1個単価</b>で管理し、1ctあたりの価格は 1個単価 ÷ 1個のct で逆算して表示します。</p>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card"><h2>脇石（1個単価で管理）</h2><div class="tbl" id="m_sides"></div><div class="btns" style="margin-top:8px"><button class="btn ghost sm" id="m_addSide">脇石を追加</button></div></div>
+      <div class="card"><h2>3D推定重量の補正係数</h2><div id="m_calib"></div></div>
+    </div>
+    <div class="stack">
+      <div class="card"><h2>価格の決め方・内金</h2><div class="tbl" id="m_basic"></div></div>
+      <div class="card"><h2>地金</h2><div class="tbl" id="m_metal"></div></div>
+      <div class="card"><h2>中石ダイヤ ct単価の目安（円/ct）</h2><div class="tbl" id="m_center"></div></div>
+      <div class="card"><h2>工賃</h2><div class="tbl" id="m_labor"></div></div>
+      <div class="card"><h2>パーツ・表面加工・付帯</h2><div class="tbl" id="m_parts"></div></div>
+      <div class="card stack"><div class="btns"><button class="btn danger sm" id="m_reset">初期値に戻す</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑨ 課題 -->
+<section class="pane" id="p-archive">
+  <h1 class="ph">案件アーカイブ</h1>
+  <p class="lead">店舗から届いたすべての案件の一覧です。「受注案件」「ボツ案件」に分けて、決め手と決まらなかった理由を確認・記録できます。店舗側でも同じ表を見て記録できます。</p>
+  <div class="card stack" id="hqArchive"></div>
+</section>
+
+<section class="pane" id="p-issues">
+  <h1 class="ph">課題と改良点</h1>
+  <p class="lead">今回の作り直しで足した・変えた・省いた項目と理由、残っている不足情報です。</p>
+  <div class="grid2">
+    <div class="stack"><div class="card"><h2>足した・変えた・省いた</h2><div id="i_addrm"></div></div></div>
+    <div class="stack"><div class="card"><h2>情報の不足・確認事項</h2><div id="i_data"></div></div><div class="card"><h2>改良が必要な点</h2><div id="i_app"></div></div></div>
+  </div>
+</section>
+</main>
+</div>
+
+<!-- ═════════ お客様ライン：Design & Quotation ═════════ -->
+<div id="clientLine">
+  <div class="dqbar wrap">
+    <select id="clCase" aria-label="表示する見積書" style="width:auto;max-width:300px"></select>
+    <div class="btns"><button class="btn gold" id="clPdf">PDFで保存</button></div>
+  </div>
+  <div class="dqwrap wrap" id="clBody"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ═════════ Google Apps Script 接続（Chrome＋Google Workspace版）═════════
+   アプリ本体は「claude.use(...)」と同じ形の部品（db / assets / downloads / sample / user）を使う。
+   ここでそれを Apps Script のサーバー関数（Code.gs の api〜）につなぎ替える。
+   AI は Gemini（API）だけを使う。画像・PDFは会社のGoogleドライブに保存する。 */
+(function(){
+  if(!(window.google&&google.script&&google.script.run))return;
+  const SENT='https://sumisura-asset.invalid/';
+  const run=(fn,...args)=>new Promise((res,rej)=>google.script.run
+    .withSuccessHandler(res)
+    .withFailureHandler(e=>{const m=String(e&&e.message||e||'');const er=new Error(m.replace(/^\[\w+\]\s*/,''));er.code=(m.match(/\[(\w+)\]/)||[])[1]||'server';rej(er);})[fn](...args));
+  window.__gasRun=run;
+
+  /* ── 起動情報（役割・Gemini設定）── */
+  const viewP=new Promise(res=>{try{google.script.url.getLocation(l=>res((l&&l.parameter&&l.parameter.view)||''));}catch(e){res('');}});
+  const bootP=viewP.then(view=>run('apiBoot',{view}));
+  window.__gasBoot=bootP;
+
+  /* ── 画像・PDF（ドライブ）── */
+  const ACACHE=new Map();
+  const b64ToBlob=(b64,mime)=>{const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type:mime||'application/octet-stream'});};
+  const blobToB64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=rej;r.readAsDataURL(b);});
+  const idOf=u=>String(u).slice(SENT.length).split(/[?#]/)[0];
+  function assetBlob(id){if(!ACACHE.has(id))ACACHE.set(id,run('apiAsset',id).then(r=>{const b=b64ToBlob(r.b64,r.mime);return {blob:b,url:URL.createObjectURL(b)};}).catch(e=>{ACACHE.delete(id);throw e;}));return ACACHE.get(id);}
+  window.__assetUrl=u=>typeof u==='string'&&u.startsWith(SENT)?assetBlob(idOf(u)).then(x=>x.url):Promise.resolve(u);
+
+  /* <img src> とstyleの中の画像を、ドライブから読んだ画像に差し替える */
+  const PEND=new Set();
+  function fixImg(el){const s=el.getAttribute('src');if(!s||!s.startsWith(SENT))return;
+    const p=assetBlob(idOf(s)).then(x=>{if(el.getAttribute('src')===s)el.setAttribute('src',x.url);}).catch(()=>{el.setAttribute('alt','（画像を読めませんでした）');});
+    PEND.add(p);p.finally(()=>PEND.delete(p));}
+  function fixStyle(el){const st=el.getAttribute('style');if(!st||!st.includes(SENT))return;
+    const ids=[...st.matchAll(/https:\/\/sumisura-asset\.invalid\/([\w-]+)/g)].map(m=>m[1]);
+    const p=Promise.all(ids.map(i=>assetBlob(i).then(x=>[i,x.url]))).then(pairs=>{let t=el.getAttribute('style');pairs.forEach(([i,u])=>{t=t.split(SENT+i).join(u);});el.setAttribute('style',t);}).catch(()=>{});
+    PEND.add(p);p.finally(()=>PEND.delete(p));}
+  function scan(root){if(root.nodeType!==1)return;
+    if(root.tagName==='IMG')fixImg(root);if(root.hasAttribute&&root.hasAttribute('style'))fixStyle(root);
+    root.querySelectorAll&&root.querySelectorAll('img[src^="'+SENT+'"]').forEach(fixImg);
+    root.querySelectorAll&&root.querySelectorAll('[style*="sumisura-asset.invalid"]').forEach(fixStyle);}
+  new MutationObserver(ms=>ms.forEach(m=>{if(m.type==='attributes')scan(m.target);else m.addedNodes.forEach(scan);}))
+    .observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','style']});
+  const srcD=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src');
+  Object.defineProperty(HTMLImageElement.prototype,'src',{configurable:true,get(){return srcD.get.call(this);},
+    set(v){if(typeof v==='string'&&v.startsWith(SENT)){const el=this,p=assetBlob(idOf(v)).then(x=>srcD.set.call(el,x.url));PEND.add(p);p.finally(()=>PEND.delete(p));}else srcD.set.call(this,v);}});
+  /* PDFを作る前に、画像がそろうのを待つ */
+  window.__assetsSettled=async root=>{scan(root||document.body);for(let i=0;i<5&&PEND.size;i++)await Promise.allSettled([...PEND]);
+    await Promise.all([...(root||document).querySelectorAll('img')].map(im=>im.complete&&im.naturalWidth?0:new Promise(r=>{im.addEventListener('load',r,{once:true});im.addEventListener('error',r,{once:true});setTimeout(r,8000);})));};
+  const of=window.fetch.bind(window);
+  window.fetch=(u,o)=>{const s=typeof u==='string'?u:(u&&u.url)||'';if(s.startsWith(SENT))return assetBlob(idOf(s)).then(x=>new Response(x.blob));return of(u,o);};
+  document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="'+SENT+'"]');if(!a)return;e.preventDefault();const w=window.open('','_blank');
+    assetBlob(idOf(a.getAttribute('href'))).then(x=>{if(w)w.location.href=x.url;else window.open(x.url,'_blank');}).catch(()=>{w&&w.close();});},true);
+
+  const assets={
+    async upload(file){const b64=await blobToB64(file);const r=await run('apiUpload',{b64,mime:file.type||'application/octet-stream',name:file.name||'file'});
+      ACACHE.set(r.id,Promise.resolve({blob:file,url:URL.createObjectURL(file)}));return {id:r.id,url:SENT+r.id,sizeBytes:file.size};},
+    async delete(id){await run('apiDeleteAsset',id);ACACHE.delete(id);}
+  };
+
+  /* ── 共有データ（スプレッドシート）── 変更を数秒おきに取りに行く */
+  const DATA={},VERS={},LIS=[];
+  const docObj=(id,d)=>({id,exists:d!=null,data:()=>d==null?undefined:JSON.parse(JSON.stringify(d))});
+  function fire(col){LIS.filter(l=>l.col===col).forEach(l=>{try{
+    if(l.id)l.cb(docObj(l.id,(DATA[col]||{})[l.id]));
+    else l.cb({docs:Object.keys(DATA[col]||{}).map(id=>docObj(id,DATA[col][id])),size:Object.keys(DATA[col]||{}).length});}catch(e){console.error(e);}});}
+  let pulling=null,pullT=null;
+  async function pull(){if(pulling)return pulling;const cols=[...new Set(LIS.map(l=>l.col))];if(!cols.length)return;
+    pulling=run('apiPull',{cols,vers:VERS}).then(r=>{Object.entries(r.cols||{}).forEach(([c,x])=>{VERS[c]=x.v;DATA[c]=x.docs;fire(c);});
+      Object.entries(r.denied||{}).forEach(([c,m])=>LIS.filter(l=>l.col===c&&l.err).forEach(l=>{const e=new Error(m);e.code='permission_denied';l.err(e);}));})
+      .catch(e=>LIS.forEach(l=>l.err&&l.err(e))).finally(()=>{pulling=null;});return pulling;}
+  function soon(ms){clearTimeout(pullT);pullT=setTimeout(loop,ms);}
+  function loop(){pull().finally(()=>soon(document.visibilityState==='visible'?8000:30000));}
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')soon(200);});
+  const split=p=>{const a=String(p).split('/');return [a[0],a[1]];};
+  const db={
+    doc(path){const [col,id]=split(path);return {
+      async get(){const d=await run('apiGet',{col,id});return docObj(id,d);},
+      async set(v){const r=await run('apiSet',{col,id,doc:v});(DATA[col]=DATA[col]||{})[id]=JSON.parse(JSON.stringify(v));if(r&&r.v===((VERS[col]||0)+1))VERS[col]=r.v;fire(col);soon(400);},
+      async update(v){const cur=Object.assign({},(DATA[col]||{})[id]||{},v);return this.set(cur);},
+      async delete(){await run('apiDelete',{col,id});if(DATA[col])delete DATA[col][id];fire(col);soon(400);},
+      onSnapshot(cb,err){const l={col,id,cb,err};LIS.push(l);if(DATA[col])cb(docObj(id,DATA[col][id]));soon(50);return ()=>LIS.splice(LIS.indexOf(l),1);}};},
+    collection(col){return {
+      onSnapshot(cb,err){const l={col,cb,err};LIS.push(l);if(DATA[col])fire(col);soon(50);return ()=>LIS.splice(LIS.indexOf(l),1);},
+      doc(id){return db.doc(col+'/'+id);}};}
+  };
+
+  /* ── ファイル保存（Chromeのダウンロード）── */
+  const downloads={async save({filename,data}){const u=URL.createObjectURL(data),a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);}};
+
+  /* ── Gemini（文章の読み取り・指示の整理）── */
+  const sample={async json(prompt,opt){const imgs=[];for(const b of ((opt&&opt.images)||[]))imgs.push({mime:b.type||'image/png',b64:await blobToB64(b)});
+    return run('apiGeminiJson',{prompt,images:imgs});}};
+  /* ── Gemini（画像生成）── アプリ本体の「Geminiで自動生成」ボタンが使う */
+  const gen={async image(prompt,blobs){const imgs=[];for(const b of (blobs||[]))imgs.push({mime:b.type||'image/png',b64:await blobToB64(b)});
+    const r=await run('apiGeminiImage',{prompt,images:imgs});return b64ToBlob(r.b64,r.mime);}};
+
+  const user={async canEdit(){return (await bootP).role==='hq';},async can(){return true;},async info(){return bootP;}};
+
+  window.claude={async use(name){const b=await bootP;
+    if(name==='db')return db;if(name==='assets')return assets;if(name==='downloads')return downloads;if(name==='user')return user;
+    if(name==='sample'){if(!b.gemini||b.role!=='hq')throw Object.assign(new Error('Gemini API未設定'),{code:'not_granted'});return sample;}
+    if(name==='gen'){if(!b.geminiImage||b.role!=='hq')throw Object.assign(new Error('Gemini API未設定'),{code:'not_granted'});return gen;}
+    throw Object.assign(new Error('unknown'),{code:'unavailable'});}};
+  bootP.then(b=>{window.__GAS_USER=b;const e=document.getElementById('gasUser');if(e)e.textContent=(b.email||'')+(b.role==='hq'?'（本社）':'（店舗）');})
+    .catch(e=>{document.body.insertAdjacentHTML('afterbegin','<div style="background:#b3261e;color:#fff;padding:12px 16px;font-size:14px">サーバーにつながりません：'+String(e.message||e).replace(/</g,'&lt;')+'</div>');});
+})();
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<?!= include('AppA'); ?>
+<?!= include('AppB'); ?>
