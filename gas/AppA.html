@@ -1,0 +1,681 @@
+<script>
+/* Sumisura 動き（前半）：設定・共通部品・本社の画面 */
+/* ═════════ 原価マスター ═════════ */
+/* 原価の数字はこのページには入れていません。本社の権限で開いたときだけ、共有データ（master/defaults・master/main）から読み込みます。 */
+let MASTER0={"margin":"","tax":0.1,"unit":1000,"round":"切捨て","validDays":null,"leadMax":90,"rateDate":"","depositRate":0.5,"depositUnit":1000,"marginAlert":"","metals":{"K10YG":{"cls":"K10","dens":11.6,"g":"","gs":"tmp","loss":"","col":14929029,"lbl":"10金イエローゴールド"},"K10PG":{"cls":"K10","dens":11.6,"g":"","gs":"tmp","loss":"","col":15252636,"lbl":"10金ピンクゴールド"},"K10WG":{"cls":"K10","dens":11.9,"g":"","gs":"tmp","loss":"","col":15329770,"lbl":"10金ホワイトゴールド","rh":true},"K18YG":{"cls":"K18","dens":15.5,"g":"","gs":"tmp","loss":"","col":15123034,"lbl":"18金イエローゴールド"},"K18PG":{"cls":"K18","dens":15.2,"g":"","gs":"tmp","loss":"","col":15183500,"lbl":"18金ピンクゴールド"},"K18WG":{"cls":"K18","dens":15.8,"g":"","gs":"tmp","loss":"","col":15592942,"lbl":"18金ホワイトゴールド","rh":true},"Pt950":{"cls":"Pt","dens":20.6,"g":"","gs":"tmp","loss":"","col":14343392,"lbl":"プラチナ950"},"Pt900":{"cls":"Pt","dens":20,"g":"","gs":"tmp","loss":"","col":14080220,"lbl":"プラチナ900"}},"cad":["","","",""],"print":["","","",""],"finish":["","","",""],"castSTL":[],"set":{"s_ind":"","s_sh":"","m_ind":"","m_sh":"","c46":"","c6":"","hori":"","bezS":"","bezM":"","rail":""},"assembly":"","braze":"","rh":{"ring":"","pendant":"","pierce":""},"stamp":"","inspect":"","grades":["H-I / SI","F-G / VS","D-E / VVS"],"center":[[0.1,["","",""]],[0.2,["","",""]],[0.3,["","",""]],[0.4,["","",""]],[0.5,["","",""]],[0.7,["","",""]],[1,["","",""]],[1.5,["","",""]]],"centerSrc":"tmp","sides":[{"id":"d08","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":0.8,"ct":0.0025,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d09","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":0.9,"ct":0.003,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d1","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1,"ct":0.005,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d11","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.1,"ct":0.006,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d12","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.2,"ct":0.008,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d13","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.3,"ct":0.01,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d14","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.4,"ct":0.012,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d15","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.5,"ct":0.015,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d17","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.7,"ct":0.02,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d18","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":1.8,"ct":0.025,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d2","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":2,"ct":0.03,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d22","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":2.2,"ct":0.04,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d25","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":2.5,"ct":0.06,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d27","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":2.7,"ct":0.08,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"d3","kind":"dia","name":"メレダイヤ","grade":"H/SI/GDup","mm":3,"ct":0.1,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c0","kind":"color","name":"アメジスト","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c1","kind":"color","name":"ローズアメジスト","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c2","kind":"color","name":"ピンクトルマリン","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c3","kind":"color","name":"ガーネット","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c4","kind":"color","name":"ペリドット","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c5","kind":"color","name":"グリーンガーネット","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c6","kind":"color","name":"グリーントルマリン","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c7","kind":"color","name":"アクアマリン","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c8","kind":"color","name":"スカイブルートパーズ","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c9","kind":"color","name":"スイスブルートパーズ","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c10","kind":"color","name":"ロンドンブルートパーズ","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c11","kind":"color","name":"ホワイトトパーズ","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c12","kind":"color","name":"シトリン","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c13","kind":"color","name":"マンダリンガーネット","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"},{"id":"c14","kind":"color","name":"タンザナイト","grade":"","mm":2,"ct":0.035,"pc":"","src":"fix","ctSrc":"tmp"}],"parts":{"post":{"n":"ピアスポスト＋キャッチ（ペア）","K10":"","K18":"","Pt":"","s":"tmp"},"chain20":{"n":"チェーン アズキ0.20 No.2 45cm","K10":"","K18":"","Pt":"","s":"tmp"},"chain25":{"n":"チェーン アズキ0.25 40cm","K10":"","K18":"","Pt":"","s":"tmp"},"chain30":{"n":"チェーン アズキ0.30 40cm","K10":"","K18":"","Pt":"","s":"tmp"},"clasp":{"n":"6mm 引輪＋ダルマプレート","K10":"","K18":"","Pt":"","s":"tmp"}},"tex":{"サテン":null,"槌目":null,"コンビ":null},"extras":{"box":{"n":"ケース・箱","v":null,"inc":false},"cert":{"n":"保証書","v":null,"inc":false},"ship":{"n":"工場往復送料","v":null,"inc":false},"csFee":{"n":"お預り石 取扱料（1石）","v":null}},"calib":{},"lead":{"cad":7,"check":3,"print":3,"cast":7,"buy":14,"consign":5,"stock":2,"setting":7,"finish":5,"ship":3}};
+let MASTER_READY=false;
+const STONEINFO={'ダイヤモンド':{h:10},'ルビー':{h:9},'ブルーサファイア':{h:9},'ピンクサファイア':{h:9},'エメラルド':{h:7.5,brittle:true,heat:true,oil:true},'アクアマリン':{h:7.5},'モルガナイト':{h:7.5},'スピネル':{h:8},'ガーネット':{h:7},'アメジスト':{h:7},'シトリン':{h:7},'ピンクトルマリン':{h:7},'ペリドット':{h:6.5,heat:true},'タンザナイト':{h:6.5,heat:true,brittle:true},'オパール':{h:5.5,heat:true,brittle:true},'真珠':{h:3,pearl:true},'ラボグロウンダイヤ':{lab:true},'その他（要鑑別）':{h:null},'石なし（その他の品のみ）':{none:true}};
+const STORES=['伊勢丹新宿','銀座三越','松屋銀座','阪急うめだ','名古屋三越栄（サロン）','西武池袋（サロン）','大丸大阪','その他'];
+const ITEMS={ring:'Ring',pendant:'Necklace',pierce:'Pierce'};
+const ITEMS_JP={ring:'リング',pendant:'ペンダント',pierce:'ピアス（ペア）'};
+const MODELS={sol4:'ソリテア 4本爪',sol6:'ソリテア 6本爪',halo:'ハロー',free:'自由設計'};
+const METAL_BY_ITEM={ring:['K10YG','K10PG','K10WG','K18YG','K18PG','K18WG','Pt950'],pendant:['K10YG','K10PG','K10WG','K18YG','K18PG','K18WG','Pt950'],pierce:['K10YG','K10PG','K10WG','K18YG','K18PG','K18WG','Pt950','Pt900']};
+const SETS=['共有爪','爪留（独立爪）','彫り留め','覆輪留め','レール留め'];
+const COLORCENTER=['ルビー','ブルーサファイア','ピンクサファイア','エメラルド','スピネル','モルガナイト','アクアマリン','タンザナイト','ピンクトルマリン','アメジスト'];
+const STATUS=['カルテ受信','デザイン','見積発行','提示','受注','完成・精算'];
+/* カルテの進み具合（店舗と本社で同じ表示） */
+const K_STEPS=['下書き','送信済み・本社未確認','本社受信確認','本社対応中','見積発行','提案あり','受注','完成・精算'];
+function kStep(k){return k.status==='下書き'?0:k.status==='本社待ち'?(k.seen?2:1):k.status==='本社対応中'?3:k.status==='見積発行'?4:k.status==='提案済み'?5:k.status==='受注'?6:k.status==='完成・精算'?7:0;}
+function stBadge(k){const i=kStep(k);return `<span class="stb st${i}">${K_STEPS[i]}</span>`;}
+function stepper(k){const i=kStep(k),short=['下書き','送信','本社受信','対応中','見積','提案','受注','精算'];return short.map((x,j)=>`<div class="${j<i?'done':j===i?'now st'+j:''}"><i></i>${x}</div>`).join('');}
+
+/* ═════════ ひな形 ═════════ */
+const iso=d=>d.toISOString().slice(0,10);
+function newId(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function blankKarte(){const t=new Date(),due=new Date(t);due.setDate(due.getDate()+80);
+  return {id:newId('k'),status:'下書き',caseId:null,createdAt:t.toISOString(),updatedAt:t.toISOString(),
+    name:'',store:'松屋銀座',staff:'',purpose:'ご自身用',item:'ring',size:0,metal:'未定',stone:'ダイヤ',stoneNote:'',bmax:'',due:iso(due),req:'',
+    cs:{has:'no',type:'ダイヤモンド',shape:'ラウンド',cond:'未確認',ct:'',mm:'',L:'',W:'',H:'',other:'',cert:'なし'},refs:[],design:[],moods:[],metalColor:'',karat:'K18',bnote:'',dueNote:'',seen:false,seenAt:null,sentAt:null};}
+function blankCase(k){const t=new Date();k=k||blankKarte();
+  const metal=METAL_BY_ITEM[k.item].includes(k.metal)?k.metal:'Pt950';
+  const csNone=k.cs?.type==='石なし（その他の品のみ）';
+  const ctype=k.stone==='色石'?'color':k.stone==='お預り石を使う'&&!csNone?'consign':k.stone==='中石なし'?'none':'dia';
+  const ctGuess=parseFloat((k.stoneNote||'').match(/([0-9.]+)\s*ct/i)?.[1]);
+  return {id:newId('c'),kId:k.id,no:'SU-'+String(t.getFullYear()).slice(2)+String(t.getMonth()+1).padStart(2,'0')+String(t.getDate()).padStart(2,'0')+'-'+String(t.getHours()).padStart(2,'0')+String(t.getMinutes()).padStart(2,'0'),
+    status:'デザイン',createdAt:t.toISOString(),updatedAt:t.toISOString(),
+    k:JSON.parse(JSON.stringify(k)),
+    d:{item:k.item,model:ctype==='none'?'free':'sol6',metal,finish:'鏡面',size:+k.size||11,prof:'koma',w:2.0,t:1.6,W:'',H:'',D:'',skel:'',seth:'std',ctype,ct:ctGuess>0&&ctGuess<=3?ctGuess:0.30,cstone:'ルビー',cmm:5.0,m:1.2,chain:'chain20',dir:k.req||'',dirEn:''},
+    q:{w:'',center:{grade:1,unit:'',cost:''},sides:[],extras:[],tier:'auto'},
+    anchors:[],img:{step:1,svc:'gemini',style:(k.moods||[]).find(m=>STYLES[m])||'classic',sheets:[],sheetId:null,pick:'',add:'',fix:'',finals:[],refs:JSON.parse(JSON.stringify((k.design||[]).map(a=>Object.assign({},a,{design:true})).concat(k.refs||[]).map(a=>Object.assign({},a,{fromK:true})))),read:null},
+    quote:null,order:{date:iso(t),paid:'',done:false,todo:{}},settle:{w:'',ct:'',ccost:'',sides:{},done:null},
+    pub:{slot:'案A'}};}
+function sampleKarte(){const k=blankKarte();Object.assign(k,{name:'山田 花子（サンプル）',staff:'田中',purpose:'婚約・記念日',metal:'Pt950',stone:'ダイヤ',stoneNote:'0.3ct前後',bmax:600000,req:'結婚10周年。普段も着けられる上品なもの。横から見ても石座がすっきりしていること。',status:'本社待ち'});return k;}
+
+/* ═════════ 状態 ═════════ */
+let M=JSON.parse(JSON.stringify(MASTER0));
+let KARTES={},CASES={},PROPS={};
+let CASE=null,KARTE=blankKarte();
+const CAP={mode:'connecting',db:null,assets:null,dl:null,sample:null,gen:null,user:null,role:'hq'};
+let line='hq',cur='inbox',clId=null,clSlot=0,clView=0;
+const $=id=>document.getElementById(id);
+const yen=n=>(n==null||isNaN(n))?'—':'¥'+Math.round(n).toLocaleString('ja-JP');
+const sgn=n=>(n>0?'+':n<0?'−':'±')+'¥'+Math.abs(Math.round(n)).toLocaleString('ja-JP');
+const f2=n=>(Math.round((+n||0)*100)/100).toFixed(2);
+const f3=n=>(Math.round((+n||0)*1000)/1000).toFixed(3);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2400);}
+function pill(s){return s==='fix'?'<span class="pill p-fix">確定</span>':s==='tmp'?'<span class="pill p-tmp">仮値</span>':s==='in'?'<span class="pill p-ok">入力値</span>':'<span class="pill p-mis">未入力</span>';}
+const LSK='sumisura_v4';
+function lsGet(k){try{const t=localStorage.getItem(LSK+k);return t?JSON.parse(t):null;}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(LSK+k,JSON.stringify(v));return true;}catch(e){return false;}}
+
+/* ═════════ 共有データ（3ラインの連動）═════════
+   kartes/{id}    店舗が書く・本社が読む（原価なし）
+   cases/{id}     本社のみ（原価・見積・精算）
+   proposals/{id} お客様ページ（公開した提案・精算のご案内）
+   master/main    本社のみ */
+async function connect(){
+  if(!(window.claude&&claude.use)){goLocal();return;}
+  const [db,assets,dl,sample,user,gen]=await Promise.all(['db','assets','downloads','sample','user','gen'].map(n=>claude.use(n).catch(()=>null)));
+  Object.assign(CAP,{db,assets,dl,sample,user,gen});
+  if(!db){goLocal();return;}
+  CAP.mode='shared';
+  /* 権限は「確かに編集者だと分かったときだけ本社」。分からないときは店舗（原価は見えない側）にする */
+  let role='store';
+  if(user){try{const ed=await user.canEdit();if(ed===true)role='hq';else{const w=await user.can('data.write');if(w===false)role='client';}}catch(e){}}
+  CAP.role=role;applyRole();
+  if(role==='hq'){try{const s0=await db.doc('master/defaults').get();const dd=s0&&(typeof s0.data==='function'?(s0.exists===false?null:s0.data()):s0);
+      if(dd&&dd.metals){MASTER0=dd;M=JSON.parse(JSON.stringify(MASTER0));MASTER_READY=true;}else toast('原価マスターの初期値が共有データにありません。原価マスターで入力してください');}catch(e){toast('原価マスターを読めませんでした');}}
+  const t=setTimeout(()=>setConn('共有データの応答がありません','warn'),10000);
+  if(role!=='client')db.collection('kartes').onSnapshot(s=>{clearTimeout(t);KARTES={};s.docs.forEach(d=>KARTES[d.id]=d.data());setConn('共有データ','ok');render();},e=>setConn('カルテを読めません：'+e.code,'warn'));
+  if(role==='hq'){
+    let first=true;
+    db.collection('cases').onSnapshot(s=>{clearTimeout(t);CASES={};s.docs.forEach(d=>CASES[d.id]=d.data());
+      if(first){first=false;const ids=sortedCases();if(ids.length&&!CASE)openCase(ids[0],true);}
+      setConn('共有データ','ok');render();},e=>setConn('案件を読めません：'+e.code,'warn'));
+    db.doc('master/main').onSnapshot(s=>{if(s.exists){M=Object.assign(JSON.parse(JSON.stringify(MASTER0)),s.data());MASTER_READY=true;render();}},()=>{});
+  }
+  db.collection('proposals').onSnapshot(s=>{clearTimeout(t);PROPS={};s.docs.forEach(d=>PROPS[d.id]=d.data());if(role==='client')setConn('共有データ','ok');render();},()=>{});
+}
+function goLocal(){
+  /* 共有データにつながらないときは店舗の画面だけ（本社の画面と原価は出さない） */
+  CAP.mode='local';CAP.role=window.__SUMISURA_ROLE||'store';
+  KARTES=lsGet('_k')||{};CASES=CAP.role==='hq'?(lsGet('_c')||{}):{};PROPS=lsGet('_p')||{};
+  const ids=sortedCases();if(ids.length)openCase(ids[0],true);
+  setConn('サーバーにつながっていません（この端末のみ）','warn');applyRole();render();
+}
+function setConn(t,k){const e=$('conn');e.textContent=t;e.style.background=k==='ok'?'rgba(143,209,156,.25)':k==='warn'?'rgba(240,178,106,.25)':'transparent';}
+function applyRole(){
+  const r=CAP.role,allowed={hq:['store','hq','client'],store:['store','client'],client:['client']}[r];
+  document.querySelectorAll('.lines button').forEach(b=>b.hidden=!allowed.includes(b.dataset.line));
+  if(r!=='hq'){$('hqLine')?.remove();document.querySelector('.lines button[data-line="hq"]')?.remove();}
+  if(!allowed.includes(line))setLine(allowed[0]);
+}
+function sortedCases(){return Object.keys(CASES).sort((a,b)=>(CASES[b].updatedAt||'').localeCompare(CASES[a].updatedAt||''));}
+async function put(col,id,doc){
+  if(CAP.mode==='shared'){try{await CAP.db.doc(col+'/'+id).set(JSON.parse(JSON.stringify(doc)));return true;}catch(e){toast('保存できませんでした：'+(e.code||''));return false;}}
+  const key={kartes:'_k',cases:'_c',proposals:'_p'}[col],store={kartes:KARTES,cases:CASES,proposals:PROPS}[col];store[id]=JSON.parse(JSON.stringify(doc));
+  if(!lsSet(key,store)){toast('この端末に保存できません（容量）');return false;}return true;}
+async function del(col,id){if(CAP.mode==='shared'){try{await CAP.db.doc(col+'/'+id).delete();}catch(e){toast('削除できませんでした：'+(e.code||''));return false;}}
+  const key={kartes:'_k',cases:'_c',proposals:'_p'}[col],store={kartes:KARTES,cases:CASES,proposals:PROPS}[col];delete store[id];lsSet(key,store);return true;}
+let saveT=null;
+function touch(){if(!CASE)return;CASE.updatedAt=new Date().toISOString();clearTimeout(saveT);saveT=setTimeout(()=>{CASES[CASE.id]=JSON.parse(JSON.stringify(CASE));put('cases',CASE.id,CASE);},900);render();}
+async function saveMaster(){if(CAP.mode==='shared'){try{await CAP.db.doc('master/main').set(JSON.parse(JSON.stringify(M)));}catch(e){toast('原価マスターを保存できません：'+(e.code||''));}}else lsSet('_m',M);render();}
+function openCase(id,quiet){const c=CASES[id];if(!c)return;CASE=migrateImg(JSON.parse(JSON.stringify(c)));lastKey='';thumbKey='';if(!quiet)toast(`案件 ${CASE.no} を開きました`);render();}
+async function setKarteStatus(kid,status,caseId){const k=KARTES[kid];if(!k)return;k.status=status;if(caseId)k.caseId=caseId;k.updatedAt=new Date().toISOString();await put('kartes',kid,k);}
+
+/* ═════════ 形状・重量 ═════════ */
+const ctToMm=ct=>6.5*Math.cbrt(ct);
+const mmToCt=mm=>Math.pow(mm/6.5,3);
+function sideById(id){return M.sides.find(s=>s.id===id);}
+function nearestSide(mm,kind='dia'){let b=null;M.sides.filter(s=>s.kind===kind).forEach(s=>{if(!b||Math.abs(s.mm-mm)<Math.abs(b.mm-mm))b=s;});return b;}
+function centerMm(d,c=CASE){return d.ctype==='dia'?ctToMm(d.ct):d.ctype==='consign'?(+c.k.cs.mm||ctToMm(+c.k.cs.ct||0.3)):d.ctype==='color'?(+d.cmm||5):0;}
+function calibKey(d){return d.item+'_'+d.model;}
+/* 脇石の行（ハローは自動で1行） */
+function sideRows(c=CASE){const d=c.d,G=geomRaw(d,c),rows=[];
+  if(d.model==='halo'&&G.cmm){const s=nearestSide(d.m);if(s)rows.push({mid:s.id,qty:G.meleN*G.pcs,set:'共有爪',auto:true});}
+  (c.q.sides||[]).forEach(r=>rows.push(r));return rows;}
+function geomRaw(d,c=CASE){
+  const pcs=d.item==='pierce'?2:1,cmm=centerMm(d,c);
+  const prongs=d.model==='sol6'?6:4;
+  const p=Math.min(1.5,Math.max(0.8,0.55+0.09*(cmm||3)));
+  const pav=0.43*cmm,crown=0.16*cmm,setH=d.seth==='low'?1.6:2.6;
+  const parts={};
+  parts['爪']=cmm?prongs*Math.PI*(p/2)**2*(pav+crown+setH+0.4):0;
+  parts['石座']=cmm?2*Math.PI*(0.9*cmm)*0.49:0;
+  let meleN=0,haloR=0;
+  if(d.model==='halo'&&cmm){const m=d.m;haloR=cmm/2+0.3+m/2;meleN=Math.floor(2*Math.PI*haloR/(m+0.2));parts['取り巻き枠']=2*Math.PI*haloR*(m+0.4)*(0.7*m+0.4)*0.5+0.2*(parts['爪']+parts['石座']);}
+  let din=0;
+  if(d.item==='ring'){din=(40+(+d.size))/Math.PI;if(d.model!=='free'){const pf=d.prof==='koma'?0.82:0.95;parts['腕']=Math.PI*(din+d.t)*d.w*d.t*pf;}}
+  if(d.model!=='free'){if(d.item==='pendant')parts['バチカン・受け']=Math.PI*3.6*0.9*1.1+6;if(d.item==='pierce')parts['受け座']=4;}
+  return {pcs,cmm,prongs,p,pav,crown,setH,meleN,haloR,din,parts};
+}
+function geom(d,c=CASE){
+  const G=geomRaw(d,c),mt=M.metals[d.metal]||M.metals.K18YG;
+  (c.q.sides||[]).forEach(r=>{const s=sideById(r.mid);if(s)G.parts['脇石の石座']=(G.parts['脇石の石座']||0)+(+r.qty||0)/G.pcs*(s.mm<=2.5?1.3:4);});
+  const vol=Object.values(G.parts).reduce((a,b)=>a+b,0)*1.15;
+  let wRaw=vol/1000*mt.dens*G.pcs;
+  if(d.model==='free')wRaw+=(+d.skel||0);
+  const cf=M.calib[calibKey(d)]?.factor||1;
+  G.wRaw=wRaw;G.cf=cf;G.wTotal=wRaw*cf;G.vol=vol;return G;
+}
+
+/* ═════════ 見積 ═════════ */
+function centerGuide(ct,g){let row=M.center[0];M.center.forEach(r=>{if(ct>=r[0]-1e-9)row=r;});return row[1][g];}
+function castCost(w,cls){const col=cls==='Pt'?2:1;for(const r of M.castSTL){if(w<=r[0])return {v:r[col],over:false};}return {v:M.castSTL.at(-1)[col],over:true};}
+function autoTier(d){return d.model==='free'?3:d.item==='ring'?(d.model==='halo'?2:1):(d.model==='halo'?1:0);}
+function setUnit(method,mm){const big=mm>2.5;
+  if(method==='共有爪')return big?M.set.m_sh:M.set.s_sh;
+  if(method==='爪留（独立爪）')return mm>6?M.set.c6:mm>4?M.set.c46:big?M.set.m_ind:M.set.s_ind;
+  if(method==='彫り留め')return M.set.hori;if(method==='覆輪留め')return big?M.set.bezM:M.set.bezS;return M.set.rail;}
+function quoteCalc(c=CASE){
+  const d=c.d,G=geom(d,c),mt=M.metals[d.metal]||M.metals.K18YG,cls=mt.cls,L=[];
+  const wIn=+c.q.w>0,w=wIn?+c.q.w:G.wTotal;
+  const add=(grp,n,f,v,src)=>L.push({grp,n,f,v,src});
+  add('地金',`${d.metal} 地金`,`${f2(w)}g ×（1＋ロス ${(mt.loss*100).toFixed(0)}%）× ${yen(mt.g)}/g`,w*mt.g*(1+mt.loss),mt.gs==='fix'?(wIn?'in':'fix'):'tmp');
+  let center={type:d.ctype,ct:0,unit:0,cost:0,label:''};
+  if(d.ctype==='dia'){const u=+c.q.center.unit;center={type:'dia',ct:+d.ct,unit:u,cost:u*d.ct*G.pcs,grade:M.grades[c.q.center.grade],label:`ダイヤ ${(+d.ct).toFixed(2)}ct ${M.grades[c.q.center.grade]}`};
+    add('石',`中石 ${center.label}${G.pcs>1?' ×2':''}`,`${G.pcs}石 × ${(+d.ct).toFixed(2)}ct × ${u?yen(u):'未入力'}/ct`,center.cost,u?'in':'mis');}
+  else if(d.ctype==='color'){const v=+c.q.center.cost;center={type:'color',ct:0,unit:0,cost:v*G.pcs,label:`${d.cstone} Ø${(+d.cmm).toFixed(1)}mm`};add('石',`中石 ${center.label}`,`${G.pcs}石 × ${v?yen(v):'未入力'}`,center.cost,v?'in':'mis');}
+  else if(d.ctype==='consign'){center={type:'consign',ct:+c.k.cs.ct||0,unit:0,cost:0,label:`お預り石（${c.k.cs.type}）`};add('石','中石 お預り石','石代は計上しない',0,'fix');}
+  const sides=[];
+  sideRows(c).forEach(r=>{const s=sideById(r.mid),n=+r.qty||0;if(!s||!n)return;const ctT=s.ct*n,uct=s.pc/s.ct;
+    sides.push({key:'s'+sides.length,mid:s.id,name:`${s.name} Ø${s.mm}mm${s.grade?' '+s.grade:''}`,mm:s.mm,qty:n,ctpc:s.ct,pc:s.pc,ctT,uct,set:r.set,auto:!!r.auto});
+    add('石',`脇石 ${s.name} Ø${s.mm}mm`,`${n}個 × ${yen(s.pc)}（${f3(ctT)}ct・${yen(uct)}/ct）`,s.pc*n,s.src);});
+  const tier=c.q.tier==='auto'?autoTier(d):+c.q.tier,TN=['D','C','A','A+'][tier];
+  add('製造',`CADモデリング（${TN}）`,'',M.cad[tier],'fix');
+  add('製造','3Dプリント原型',`${G.pcs}点 × ${yen(M.print[tier])}`,M.print[tier]*G.pcs,'fix');
+  const cc=castCost(w/G.pcs,cls);add('製造','キャスト',`${G.pcs}点 × ${yen(cc.v)}${cc.over?'（13g超：要見積）':''}`,cc.v*G.pcs,'fix');
+  if(G.cmm){const cu=setUnit('爪留（独立爪）',G.cmm);add('製造','石留 中石',`${G.pcs}石 × ${yen(cu)}`,cu*G.pcs,'fix');}
+  sides.forEach(s=>{const u=setUnit(s.set,s.mm);add('製造',`石留 脇石（${s.set}）`,`${s.qty}個 × ${yen(u)}`,u*s.qty,'fix');});
+  const brz=d.item==='pierce'?2:1;
+  add('製造','組立・ロウ付け',`${yen(M.assembly)}×${G.pcs} ＋ ${yen(M.braze)}×${brz}`,M.assembly*G.pcs+M.braze*brz,'fix');
+  add('製造',`仕上・研磨（${TN}）`,`${G.pcs}本 × ${yen(M.finish[tier])}`,M.finish[tier]*G.pcs,'fix');
+  if(d.finish!=='鏡面'){const v=M.tex[d.finish];add('製造',`表面加工（${d.finish}）`,v==null?'単価未入力':'',v||0,v==null?'mis':'fix');}
+  if(mt.rh)add('製造','ロジウム','WGのみ',M.rh[d.item],'fix');
+  add('製造','刻印（品位）',`${G.pcs}点`,M.stamp*G.pcs,'fix');
+  const labor=L.filter(x=>x.grp==='製造'&&!/CAD|プリント/.test(x.n)).reduce((a,x)=>a+x.v,0);
+  add('製造','検品・品質確認・マージン',`加工工賃 ${yen(labor)} × ${(M.inspect-1).toFixed(2)}`,labor*(M.inspect-1),'fix');
+  if(d.item==='pierce'){const p=M.parts.post;add('パーツ',p.n,'',p[cls],p.s);}
+  if(d.item==='pendant'){const ch=M.parts[d.chain],cp=M.parts.clasp;add('パーツ',ch.n,'',ch[cls],ch.s);add('パーツ',cp.n,'',cp[cls],cp.s);}
+  Object.values(M.extras).forEach(x=>{if(x.inc&&x.v!=null)add('付帯',x.n,'',x.v,'fix');});
+  if(d.ctype==='consign'){const fee=M.extras.csFee.v;add('付帯','お預り石 取扱料','',fee||0,fee==null?'mis':'fix');}
+  (c.q.extras||[]).forEach(x=>{if(x.n)add('追加加工',x.n,'工場見積',+x.v||0,x.v===''||x.v==null?'mis':'in');});
+  const total=L.reduce((a,x)=>a+(x.v||0),0);
+  return {L,total,G,w,wIn,center,sides,tier,price:priceOf(total)};
+}
+function priceOf(cost,m=M.margin,U=M.unit,rnd=M.round,t=M.tax){if(!(cost>0)||m>=1)return null;const theo=cost/(1-m);let pre;
+  if(rnd==='切上げ')pre=Math.ceil(theo/U)*U;else if(rnd==='四捨五入')pre=Math.round(theo/U)*U;else pre=Math.floor(theo/U)*U;
+  return {theo,pre,inc:Math.round(pre*(1+t)),gm:1-cost/pre};}
+function wM(){return M.wMargin!=null&&M.wMargin!==''?+M.wMargin:0.05;}
+function wQuote(d=CASE.d){return +f2(geom(d).wTotal*(1+wM()));}
+function depositOf(inc){return Math.ceil(inc*M.depositRate/M.depositUnit)*M.depositUnit;}
+
+/* ═════════ 実現性チェック ═════════ */
+function leadDays(d,c=CASE){const L=M.lead,src=d.ctype==='consign'?'consign':'buy';return L.cad+L.check+L.print+L.cast+Math.max(0,(L[src]||0)-L.cast-L.print)+L.setting+L.finish+L.ship+(d.model==='free'?L.check:0);}
+function checks(d,c=CASE){
+  const R=[],G=geom(d,c),add=(lv,t,s)=>R.push({lv,t,s});
+  if(!METAL_BY_ITEM[d.item].includes(d.metal))add('NG',`${d.metal}は${ITEMS_JP[d.item]}に使えません`,'Pt900はピアスのみです。');
+  if(d.item==='ring'&&d.model!=='free'){
+    if(d.w<1.5)add('NG',`腕幅 ${d.w.toFixed(1)}mm は細すぎます`,'1.5mm未満は変形・破損のおそれ。1.6mm以上にしてください。');
+    else if(d.w<1.8&&G.cmm>=5.2)add('注意',`中石に対して腕幅${d.w.toFixed(1)}mmは華奢です`,'0.5ct以上は腕幅1.8mm以上を推奨します。');
+    if(d.t<1.2)add('NG',`腕厚 ${d.t.toFixed(1)}mm は薄すぎます`,'1.2mm未満はサイズ直しで割れるおそれ。');
+    const room=G.setH+d.t-0.3;if(G.cmm&&G.pav>room)add('NG','石座が低すぎ、石の先端が指に当たります','石座を「標準」にしてください。');}
+  if(d.model==='free'){if(!(+d.skel>0))add('注意','骨格の地金重量が未入力です','推定重量が石座分だけになります。');
+    if(+d.D>0&&+d.D<1.2)add('NG',`厚み ${d.D}mm では強度が足りません`,'地金部分は最薄1.2mm以上が目安です。');}
+  if(d.model==='sol4'&&G.cmm>=7.4)add('注意','1.5ct以上の4本爪は石の保持が弱くなります','6本爪を推奨します。');
+  if(d.model==='halo'&&G.cmm&&d.m>G.cmm*0.38)add('注意','取り巻きメレが中石に対して大きめです',`中石径の3割程度（${(G.cmm*0.3).toFixed(1)}mm前後）が整って見えます。`);
+  if(d.ctype==='none'&&d.model!=='free')add('NG','型（ソリテア・ハロー）には中石が必要です','中石なしは「自由設計」で作ります。');
+  if(d.item==='pierce'){const ct=mmToCt(G.cmm);if(ct>2)add('NG','片耳2ctを超えるスタッドは耳に負担がかかります','揺れるタイプ（自由設計）で検討してください。');else if(ct>1)add('注意','片耳1ctを超えます','キャッチを大きめにしてください。');}
+  if(d.item==='pendant'&&d.chain==='chain20'&&G.cmm>=6.5)add('注意','1ct以上にアズキ0.20は細めです','アズキ0.25以上を推奨します。');
+  if(d.ctype==='consign'){const cs=c.k.cs,info=STONEINFO[cs.type]||{};
+    if(info.lab)add('NG','ラボグロウンダイヤはお預かりしません','ブランド方針（天然石のみ）。');
+    if(info.pearl)add('NG','真珠は爪留めの型に入りません','自由設計で対応します。');
+    if(info.heat)add('注意',`${cs.type}は熱に弱い石です`,'ロウ付け・仕上の前に石を外す工程が必要です。');
+    if(info.brittle)add('注意',`${cs.type}は割れやすい石です`,'破損リスクの了承を受注前に取ります。');
+    if(cs.shape!=='ラウンド')add('注意',`お預り石が「${cs.shape}」です`,'石座は個別設計になります。');}
+  const lt=leadDays(d,c);if(lt>M.leadMax)add('NG',`制作日数の目安 ${lt}日が上限${M.leadMax}日を超えます`,'');
+  if(!R.length)add('OK','構造・寸法上の問題はありません','');
+  return R;}
+function checkHTML(L){return L.map(c=>`<div class="chk ${c.lv}"><b>${c.lv}</b><div>${esc(c.t)}${c.s?`<small>${esc(c.s)}</small>`:''}</div></div>`).join('');}
+
+/* ═════════ 3D ═════════ */
+const R3={ok:false};
+const VIEWS=['main','front','side','iso'];
+function viewLabel(v,item){return item==='ring'?{main:'真上',front:'正面',side:'側面',iso:'斜め俯瞰'}[v]:{main:'正面',front:'上面',side:'側面',iso:'斜め俯瞰'}[v];}
+function viewRot(v,item){if(item==='ring')return {main:{x:1.5,y:0},front:{x:0,y:0},side:{x:0,y:Math.PI/2},iso:{x:0.55,y:0.6}}[v];return {main:{x:0,y:0},front:{x:1.5,y:0},side:{x:0,y:Math.PI/2},iso:{x:0.45,y:0.55}}[v];}
+function init3D(){
+  if(!window.THREE){document.querySelectorAll('.viewer').forEach(el=>el.insertAdjacentHTML('beforeend','<div class="vfail">3D表示ライブラリを読み込めませんでした。見積は使えます。</div>'));return;}
+  try{
+    const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+    r.setPixelRatio(Math.min(2,window.devicePixelRatio||1));r.outputEncoding=THREE.sRGBEncoding;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.05;
+    const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(32,1,0.1,500);
+    const pm=new THREE.PMREMGenerator(r),env=new THREE.Scene();
+    env.add(new THREE.Mesh(new THREE.BoxGeometry(60,60,60),new THREE.MeshBasicMaterial({color:0x6a6460,side:THREE.BackSide})));
+    [[0,25,0,40,40,0xffffff],[22,8,10,14,26,0xfff3e0],[-22,4,-6,12,24,0xe8f0ff],[0,6,-24,30,10,0xffffff],[0,-20,0,30,30,0x3a3530]].forEach(([x,y,z,w,h,c])=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}));p.position.set(x,y,z);p.lookAt(0,0,0);env.add(p);});
+    scene.environment=pm.fromScene(env,0.03).texture;
+    scene.add(new THREE.AmbientLight(0xffffff,0.25));const dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(5,10,8);scene.add(dl);
+    Object.assign(R3,{ok:true,r,scene,cam,rot:{x:0.55,y:0.6},dist:40,fit:40,spin:true,grp:null,host:null});
+    let drag=null;const cv=r.domElement;
+    cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};R3.spin=false;cv.setPointerCapture(e.pointerId);});
+    cv.addEventListener('pointermove',e=>{if(!drag)return;R3.rot.y+=(e.clientX-drag.x)*0.01;R3.rot.x=Math.max(-1.55,Math.min(1.55,R3.rot.x+(e.clientY-drag.y)*0.01));drag={x:e.clientX,y:e.clientY};});
+    cv.addEventListener('pointerup',()=>drag=null);
+    cv.addEventListener('wheel',e=>{e.preventDefault();R3.dist=Math.max(R3.fit*0.5,Math.min(R3.fit*2.5,R3.dist*(e.deltaY>0?1.08:0.93)));},{passive:false});
+    R3.ro=new ResizeObserver(()=>size3D());
+    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function loop(){requestAnimationFrame(loop);if(!R3.grp||!R3.host||!R3.host.offsetParent)return;if(R3.spin&&!reduce)R3.rot.y+=0.006;
+      R3.grp.rotation.set(R3.rot.x,R3.rot.y,0,'XYZ');cam.position.set(0,0,R3.dist);cam.lookAt(0,0,0);r.render(scene,cam);})();
+  }catch(e){document.querySelectorAll('.viewer').forEach(el=>el.insertAdjacentHTML('beforeend','<div class="vfail">この端末では3D表示を使えません。</div>'));}
+}
+function size3D(){if(!R3.ok||!R3.host)return;const w=R3.host.clientWidth||400,h=R3.host.clientHeight||w;R3.r.setSize(w,h,false);R3.cam.aspect=w/h;R3.cam.updateProjectionMatrix();}
+function attach3D(host){if(!R3.ok||R3.host===host)return;if(R3.host)R3.ro.unobserve(R3.host);R3.host=host;host.prepend(R3.r.domElement);R3.ro.observe(host);size3D();
+  host.querySelectorAll('.vbar button').forEach(b=>b.onclick=()=>{const v=b.dataset.v;if(v==='spin'){R3.spin=!R3.spin;return;}R3.spin=false;R3.rot=Object.assign({},viewRot(v,R3.item||'ring'));});}
+function gemMesh(dia,color){
+  const g=new THREE.Group(),r=dia/2,isW=color===0xF4F8FF;
+  const mat=new THREE.MeshPhysicalMaterial({color:isW?0xC9D6EA:color,metalness:isW?0.35:0.1,roughness:0.02,clearcoat:1,clearcoatRoughness:0,envMapIntensity:isW?3.6:2.4,flatShading:true,emissive:isW?0x1a2233:0x000000});
+  const crown=new THREE.Mesh(new THREE.CylinderGeometry(r*0.56,r,dia*0.16,16,1),mat);crown.position.y=dia*0.095;
+  const gird=new THREE.Mesh(new THREE.CylinderGeometry(r,r,dia*0.03,32),mat);
+  const pav=new THREE.Mesh(new THREE.ConeGeometry(r,dia*0.43,16,1),mat);pav.rotation.x=Math.PI;pav.position.y=-dia*0.23;
+  g.add(crown,gird,pav);return g;}
+const STONECOL={'ダイヤモンド':0xF4F8FF,'ルビー':0xC0182F,'ブルーサファイア':0x1D3FA8,'ピンクサファイア':0xF07AA6,'エメラルド':0x168A4E,'スピネル':0xD0325E,'モルガナイト':0xF2B9B0,'アクアマリン':0x8FD3E4,'タンザナイト':0x6A5ACD,'ピンクトルマリン':0xF07D9C,'アメジスト':0x9A55C8,'ガーネット':0x86101E,'シトリン':0xE6A52A,'ペリドット':0x9CC12B,'オパール':0xF2EEE6,'真珠':0xF6F1E8};
+function build3D(d,c=CASE){
+  if(!R3.ok)return;const G=geom(d,c),mt=M.metals[d.metal]||M.metals.K18YG;R3.item=d.item;
+  if(R3.grp){R3.scene.remove(R3.grp);R3.grp.traverse(o=>{o.geometry&&o.geometry.dispose();});}
+  const metal=new THREE.MeshStandardMaterial({color:mt.col,metalness:1,roughness:d.finish==='サテン'?0.42:d.finish==='槌目'?0.3:0.16,envMapIntensity:1.25});
+  const cCol=d.ctype==='dia'?0xF4F8FF:d.ctype==='color'?(STONECOL[d.cstone]||0xcc3355):(STONECOL[c.k.cs.type]||0xF4F8FF);
+  const cm=G.cmm||3.0;
+  const head=()=>{const h=new THREE.Group(),r=cm/2;
+    if(G.cmm)h.add(gemMesh(cm,cCol));
+    const top=cm*0.17,bottom=-(0.43*cm+G.setH*0.6),n=G.prongs,off=n===6?Math.PI/6:Math.PI/4;
+    if(G.cmm)for(let i=0;i<n;i++){const a=off+i*2*Math.PI/n,rx=Math.cos(a)*r*0.97,rz=Math.sin(a)*r*0.97,len=top-bottom;
+      const cy=new THREE.Mesh(new THREE.CylinderGeometry(G.p/2,G.p/2*1.1,len,12),metal);cy.position.set(rx,(top+bottom)/2,rz);h.add(cy);
+      const tip=new THREE.Mesh(new THREE.SphereGeometry(G.p*0.55,12,10),metal);tip.position.set(rx*0.97,top,rz*0.97);tip.scale.set(1,0.75,1);h.add(tip);}
+    const r1=new THREE.Mesh(new THREE.TorusGeometry(r*0.88,0.36,8,40),metal);r1.rotation.x=Math.PI/2;r1.position.y=-0.43*cm*0.35;h.add(r1);
+    const r2=new THREE.Mesh(new THREE.TorusGeometry(r*0.55,0.34,8,32),metal);r2.rotation.x=Math.PI/2;r2.position.y=bottom+0.4;h.add(r2);
+    if(d.model==='halo'&&G.cmm){const m=d.m,R=G.haloR;
+      const fr=new THREE.Mesh(new THREE.TorusGeometry(R,m*0.42,10,64),metal);fr.rotation.x=Math.PI/2;fr.position.y=-m*0.55;fr.scale.z=1.2;h.add(fr);
+      for(let i=0;i<G.meleN;i++){const a=i*2*Math.PI/G.meleN,g=gemMesh(m,0xF4F8FF);g.position.set(Math.cos(a)*R,-m*0.05,Math.sin(a)*R);h.add(g);
+        const b=new THREE.Mesh(new THREE.SphereGeometry(m*0.17,8,6),metal),a2=a+Math.PI/G.meleN;b.position.set(Math.cos(a2)*R,m*0.12,Math.sin(a2)*R);h.add(b);}
+      const sup=new THREE.Mesh(new THREE.TorusGeometry(R*0.8,0.35,8,40),metal);sup.rotation.x=Math.PI/2;sup.position.y=-m*1.6;h.add(sup);}
+    return {h,bottom};};
+  const grp=new THREE.Group();
+  if(d.item==='ring'){
+    const rin=G.din/2,T=d.model==='free'?1.6:d.t,W=d.model==='free'?2.0:d.w,pts=[];
+    if(d.prof==='koma'||d.model==='free'){for(let i=0;i<=16;i++){const a=-Math.PI/2+i*Math.PI/16;pts.push(new THREE.Vector2(rin+Math.cos(a)*T,Math.sin(a)*W/2));}pts.push(new THREE.Vector2(rin,W/2),new THREE.Vector2(rin,-W/2),pts[0].clone());}
+    else{const k=0.15;pts.push(new THREE.Vector2(rin,-W/2+k),new THREE.Vector2(rin+k,-W/2),new THREE.Vector2(rin+T-k,-W/2),new THREE.Vector2(rin+T,-W/2+k),new THREE.Vector2(rin+T,W/2-k),new THREE.Vector2(rin+T-k,W/2),new THREE.Vector2(rin+k,W/2),new THREE.Vector2(rin,W/2-k),new THREE.Vector2(rin,-W/2+k));}
+    const band=new THREE.Mesh(new THREE.LatheGeometry(pts,96),metal);band.rotation.x=Math.PI/2;grp.add(band);
+    const {h,bottom}=head();h.position.y=rin+T-bottom-0.2;grp.add(h);
+  }else if(d.item==='pendant'){
+    const {h}=head();h.rotation.x=Math.PI/2;grp.add(h);
+    const top=(d.model==='halo'?G.haloR+d.m/2:cm/2);
+    const bail=new THREE.Mesh(new THREE.TorusGeometry(1.6,0.5,10,32),metal);bail.position.set(0,top+1.9,-0.6);bail.rotation.y=Math.PI/2;grp.add(bail);
+  }else{
+    const off=(d.model==='halo'?G.haloR+d.m:cm/2+1)*1.25;
+    [-1,1].forEach(s=>{const {h,bottom}=head();h.rotation.x=Math.PI/2;h.position.x=s*off;grp.add(h);
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,10,12),metal);post.rotation.x=Math.PI/2;post.position.set(s*off,0,bottom-5);grp.add(post);
+      const cat=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,1.2,24),metal);cat.rotation.x=Math.PI/2;cat.position.set(s*off,0,bottom-7);grp.add(cat);});
+  }
+  R3.scene.add(grp);R3.grp=grp;
+  const bs=new THREE.Box3().setFromObject(grp).getBoundingSphere(new THREE.Sphere());
+  grp.children.forEach(o=>o.position.sub(bs.center));
+  R3.fit=bs.radius/Math.sin(THREE.MathUtils.degToRad(16))*1.02;R3.dist=R3.fit;
+  const hud=R3.host&&R3.host.querySelector('.vhud');if(hud)hud.textContent=`${ITEMS_JP[d.item]}・${MODELS[d.model]}・${d.metal}${d.model==='free'?'（参考形状）':''}`;
+}
+function snapView(v,item,px=900,bg=0xF5EFE5){
+  if(!R3.ok||!R3.grp)return null;
+  const r=R3.r,old=new THREE.Vector2();r.getSize(old);const oc=R3.cam.aspect;
+  r.setSize(px,px,false);R3.cam.aspect=1;R3.cam.updateProjectionMatrix();
+  const rt=viewRot(v,item);R3.grp.rotation.set(rt.x,rt.y,0,'XYZ');R3.cam.position.set(0,0,R3.fit);R3.cam.lookAt(0,0,0);
+  r.setClearColor(bg,1);r.render(R3.scene,R3.cam);const url=r.domElement.toDataURL('image/jpeg',0.9);
+  r.setClearColor(0x000000,0);r.setSize(old.x||1,old.y||1,false);R3.cam.aspect=oc;R3.cam.updateProjectionMatrix();return url;}
+function dataUrlToBlob(u){const [h,b]=u.split(',');const bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:h.match(/:(.*?);/)[1]});}
+/* 調整のたびに3Dと4面サムネを更新（連続操作はまとめて描き直す） */
+let thumbs={},thumbKey='',lastKey='',thumbT=null;
+function designKey(){const d=CASE.d;return JSON.stringify([d,CASE.q.sides,CASE.k.cs,M.metals[d.metal]?.col]);}
+function refresh3D(force){if(!R3.ok||!CASE)return;const key=designKey();
+  if(key!==lastKey||force){lastKey=key;build3D(CASE.d);}
+  if(key!==thumbKey){const box=$('thumbs');if(box)box.classList.add('flash');clearTimeout(thumbT);
+    thumbT=setTimeout(()=>{VIEWS.forEach(v=>thumbs[v]=snapView(v,CASE.d.item,300));thumbKey=key;if(box)box.classList.remove('flash');renderThumbs();},120);}}
+function renderThumbs(){const box=$('thumbs');if(!box||!CASE)return;
+  box.innerHTML=VIEWS.map(v=>`<figure data-v="${v}">${thumbs[v]?`<img src="${thumbs[v]}" alt="${viewLabel(v,CASE.d.item)}">`:'<div style="aspect-ratio:1/1"></div>'}<figcaption>${viewLabel(v,CASE.d.item)}</figcaption></figure>`).join('');
+  box.querySelectorAll('figure').forEach(f=>f.onclick=()=>{R3.spin=false;R3.rot=Object.assign({},viewRot(f.dataset.v,CASE.d.item));});}
+function ensureThumbs(){if(!CASE||!R3.ok)return;if(thumbKey!==designKey()){build3D(CASE.d);lastKey='';VIEWS.forEach(v=>thumbs[v]=snapView(v,CASE.d.item,300));thumbKey=designKey();}}
+
+/* ═════════ 画像の保存 ═════════ */
+async function putImage(blob,name){
+  if(CAP.assets){try{const r=await CAP.assets.upload(blob);return {id:r.id,url:r.url,name};}catch(e){toast('画像を共有できませんでした（'+(e.code||'')+'）。この端末だけで表示します');}}
+  return {id:null,url:URL.createObjectURL(blob),name,local:true};}
+async function dropImage(img){if(img.id&&CAP.assets&&CAP.role==='hq'){try{await CAP.assets.delete(img.id);}catch(e){}}else if(img.local)try{URL.revokeObjectURL(img.url);}catch(e){}}
+async function saveFile(filename,blob){
+  if(CAP.dl){try{await CAP.dl.save({filename,data:blob});toast('保存しました：'+filename);}catch(e){if(e.code!=='declined')toast('保存できませんでした（'+(e.code||'')+'）');}return;}
+  toast('この画面ではファイルを保存できません。サムネを右クリック（長押し）して保存してください');}
+
+/* ═════════ ライン・タブ ═════════ */
+const TABS=[{ph:'受付',items:[['inbox','受信カルテ・案件']]},{ph:'画像',items:[['image','デザイン画像']]},
+  {ph:'仕様・見積',items:[['design','仕様・3D'],['est','見積']]},{ph:'お客様へ',items:[['publish','見積書（D&Q）']]},{ph:'受注後',items:[['order','受注・内金'],['settle','完成・精算']]},
+  {ph:'管理',items:[['archive','案件アーカイブ'],['master','原価マスター'],['issues','課題']]}];
+const TABKEYS=TABS.flatMap(p=>p.items.map(i=>i[0]));
+function buildTabs(){let n=0;$('tabs').innerHTML=TABS.map(p=>`<div class="phase"><small>${p.ph}</small><div class="row">${p.items.map(([k,l])=>`<button class="tab" data-t="${k}"><i>${++n}</i>${l}</button>`).join('')}</div></div>`).join('');
+  $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(b.dataset.t));}
+function go(t){if(t!=='inbox'&&t!=='master'&&t!=='issues'&&t!=='archive'&&!CASE){toast('先に案件を開いてください');t='inbox';}
+  cur=t;if(line!=='hq')setLine('hq',true);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('#hqLine section.pane').forEach(s=>s.classList.toggle('on',s.id==='p-'+t));
+  if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);render();window.scrollTo({top:0});}
+function setLine(l,quiet){
+  const allowed={hq:['store','hq','client'],store:['store','client'],client:['client']}[CAP.role];if(!allowed.includes(l))l=allowed[0];
+  line=l;document.body.classList.remove('l-hq','l-store','l-client');document.body.classList.add('l-'+l);
+  document.querySelectorAll('.lines button').forEach(b=>b.classList.toggle('on',b.dataset.line===l));
+  const h=l==='client'?'#client'+(clId?'-'+clId:''):l==='store'?'#store':'#'+cur;if(location.hash!==h)history.replaceState(null,'',h);
+  if(!quiet){if(l==='hq')go(cur);else{render();window.scrollTo({top:0});}}}
+document.querySelectorAll('.lines button').forEach(b=>b.onclick=()=>setLine(b.dataset.line));
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go);});
+
+/* 入力のつなぎ（CASE / KARTE） */
+const BIND=[];
+function bind(id,root,path,num){const el=$(id);BIND.push([el,root,path]);
+  el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{const o0=root==='k'?KARTE:CASE;if(!o0)return;const ks=path.split('.');let o=o0;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks.at(-1)]=num?(el.value===''?'':+el.value):el.value;
+    if(root==='k'){KARTE.updatedAt=new Date().toISOString();renderStore();}else touch();});}
+function syncBinds(){BIND.forEach(([el,root,path])=>{if(document.activeElement===el)return;const o0=root==='k'?KARTE:CASE;if(!o0)return;let o=o0;for(const k of path.split('.'))o=o?.[k];el.value=o??'';});}
+function segInit(id,get,set,opts,root){const el=$(id);if(opts)el.innerHTML=opts.map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{set(b.dataset.v);root==='k'?renderStore():touch();});
+  el._sync=()=>el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(get())===b.dataset.v));}
+
+/* ═════════ 店舗ライン ═════════ */
+const KPAGES=['ジュエリー','デザイン','地金・石','お手持ち品','ご予算・時期','お名前・確認'];
+const K_ICON={ring:'<ellipse cx="32" cy="38" rx="18" ry="9"/><path d="M26 30l6-12 6 12"/><circle cx="32" cy="20" r="4.5"/>',
+  pendant:'<path d="M10 8c4 16 14 24 22 24s18-8 22-24"/><path d="M32 32v4"/><path d="M32 36l-7 9 7 9 7-9z"/>',
+  pierce:'<circle cx="20" cy="22" r="6"/><circle cx="44" cy="22" r="6"/><path d="M20 28v8M44 28v8"/><circle cx="20" cy="40" r="3"/><circle cx="44" cy="40" r="3"/>'};
+const K_PURP=['ご自身用','婚約・記念日','ギフト','リフォーム（お手持ちから）','その他'];
+const K_HINTS=['普段使いしやすく','華やかに','シンプルで上品に','引っかかりにくく','石を大きく見せたい','重ね付けしたい','手もとがきれいに見える','個性的に','クラシックな雰囲気','長く使える飽きのこないもの'];
+const K_MCOL=[['YG','イエローゴールド','#E2BF63','#B98A24'],['PG','ピンクゴールド','#EBB7A0','#BE7D66'],['WG','ホワイトゴールド','#E9E9E6','#AFAFAA'],['Pt','プラチナ','#E3E5E8','#9EA3AA'],['','おまかせ','#F4EFE6','#C9BBA3']];
+const K_STONE=[['ダイヤ','ダイヤモンド'],['色石','色石（ルビーなど）'],['お預り石を使う','お手持ちの石'],['中石なし','石なし'],['未定','相談したい']];
+const K_BUD=[100000,200000,300000,500000,800000,1000000,1500000];
+let KPG=1;
+function kMetalCompose(){const c=KARTE.metalColor||'',kt=KARTE.karat||'K18';KARTE.metal=c===''?'未定':c==='Pt'?'Pt950':kt+c;}
+function kMetalParse(k){if(k.metalColor!=null)return;const m=k.metal||'未定';k.metalColor=m==='未定'?'':m.startsWith('Pt')?'Pt':m.slice(3);k.karat=m.startsWith('K10')?'K10':'K18';}
+function kCards(id,opts,get,set,html){const el=$(id);el.innerHTML=opts.map(([v,l,x])=>`<button type="button" data-v="${esc(v)}">${html?html(v,l,x):`<b>${l}</b>`}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(kLocked())return;set(b.dataset.v);KARTE.updatedAt=new Date().toISOString();renderStore();});
+  el._sync=()=>el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',[].concat(get()).map(String).includes(b.dataset.v)));}
+function initStore(){
+  $('k_store').innerHTML=STORES.map(s=>`<option>${s}</option>`).join('');
+  $('k_size').innerHTML='<option value="0">わからない</option>'+Array.from({length:19},(_,i)=>`<option value="${i+5}">${i+5}号</option>`).join('');
+  $('k_csType').innerHTML=Object.keys(STONEINFO).map(s=>`<option>${s}</option>`).join('');
+  ['name','store','staff','stoneNote','due','req'].forEach(k=>bind('k_'+k,'k',k));bind('k_bmax','k','bmax',true);bind('k_size','k','size',true);
+  [['k_csType','type'],['k_csShape','shape'],['k_csCond','cond'],['k_csCert','cert']].forEach(([i,k])=>bind(i,'k','cs.'+k));[['k_csCt','ct'],['k_csL','L'],['k_csW','W'],['k_csH','H']].forEach(([i,k])=>bind(i,'k','cs.'+k,true));bind('k_csOther','k','cs.other');
+  kCards('k_item',Object.entries(ITEMS_JP).map(([v,l])=>[v,l]),()=>KARTE.item,v=>KARTE.item=v,(v,l)=>`<svg viewBox="0 0 64 56" aria-hidden="true">${K_ICON[v]}</svg><b>${l}</b>`);
+  kCards('k_purpose',K_PURP.map(p=>[p,p]),()=>KARTE.purpose,v=>KARTE.purpose=v,(v,l)=>l);
+  kCards('k_moods',Object.entries(STYLES).map(([k,s])=>[k,s.n,s.d]),()=>KARTE.moods||[],v=>{const M2=KARTE.moods=KARTE.moods||[],i=M2.indexOf(v);if(i>=0)M2.splice(i,1);else{if(M2.length>=2)M2.shift();M2.push(v);}},(v,l,d)=>`<svg viewBox="0 0 64 48" aria-hidden="true">${STYLES[v].svg}</svg><b>${l}</b><small>${d}</small>`);
+  kCards('k_mcolor',K_MCOL.map(([v,l,a,b])=>[v,l,a+'|'+b]),()=>KARTE.metalColor??'',v=>{KARTE.metalColor=v;kMetalCompose();},(v,l,x)=>{const [a,b]=x.split('|');return `<i class="kswatch" style="background:radial-gradient(circle at 35% 30%,#fff 0,${a} 38%,${b} 100%)"></i><b>${l}</b>`;});
+  kCards('k_karat',[['K18','K18（18金）'],['K10','K10（10金・お手頃）']],()=>KARTE.karat||'K18',v=>{KARTE.karat=v;kMetalCompose();},(v,l)=>l);
+  kCards('k_stone',K_STONE,()=>KARTE.stone,v=>{KARTE.stone=v;if(v==='お預り石を使う')KARTE.cs.has='yes';},(v,l)=>`<b>${l}</b>`);
+  kCards('k_cs',[['no','使わない'],['yes','使いたい']],()=>KARTE.cs.has,v=>{KARTE.cs.has=v;if(v==='yes'&&KARTE.stone!=='色石'&&KARTE.stone!=='ダイヤ')KARTE.stone='お預り石を使う';if(v==='no'&&KARTE.stone==='お預り石を使う')KARTE.stone='未定';},(v,l)=>`<b>${l}</b>`);
+  kCards('k_bud',K_BUD.map(n=>[n,n>=10000?`〜${n/10000}万円`:'']).concat([['0','ご相談']]),()=>String(+KARTE.bmax||(KARTE.bnote?'0':'')),v=>{KARTE.bmax=+v||'';KARTE.bnote=v==='0'?'ご相談':'';},(v,l)=>l);
+  const dues=[[1,'1か月後'],[2,'2か月後'],[3,'3か月後'],[6,'半年後'],[0,'特に決まっていない']];
+  kCards('k_dueC',dues.map(([m,l])=>[m,l]),()=>KARTE.dueNote==='特になし'?'0':'',v=>{if(+v===0){KARTE.dueNote='特になし';const d=new Date();d.setDate(d.getDate()+90);KARTE.due=iso(d);}else{KARTE.dueNote='';const d=new Date();d.setMonth(d.getMonth()+ +v);KARTE.due=iso(d);}},(v,l)=>l);
+  $('k_hint').innerHTML=K_HINTS.map(h=>`<button type="button">＋ ${h}</button>`).join('');
+  $('k_hint').querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{if(kLocked())return;const t=K_HINTS[i],r=$('k_req');KARTE.req=(KARTE.req||'').replace(/\s+$/,'');KARTE.req+=(KARTE.req&&!/[。、\n]$/.test(KARTE.req)?'。':'')+t;r.value=KARTE.req;renderStore();r.focus();});
+  $('k_img').onchange=async e=>{const files=[...e.target.files];e.target.value='';const room=8-KARTE.refs.length;if(files.length>room)toast(`添付は最大8件です（あと${Math.max(0,room)}件）`);
+    for(const f of files.slice(0,Math.max(0,room))){if(f.size>10*1024*1024){toast(`「${f.name}」は10MBを超えています`);continue;}const r=await putImage(f,f.name);r.pdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);KARTE.refs.push(r);}renderStore();kAuto();};
+  const kd=$('k_ddrop');
+  ['dragenter','dragover'].forEach(t=>kd.addEventListener(t,e=>{e.preventDefault();kd.classList.add('over');}));
+  ['dragleave','drop'].forEach(t=>kd.addEventListener(t,e=>{e.preventDefault();kd.classList.remove('over');}));
+  kd.addEventListener('drop',e=>addDesignImgs([...(e.dataTransfer?.files||[])]));
+  $('k_dimg').onchange=e=>{const f=[...e.target.files];e.target.value='';addDesignImgs(f);};
+  document.addEventListener('paste',e=>{if(line!=='store'||kLocked())return;const fs=[...(e.clipboardData?.items||[])].filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile()).filter(Boolean);if(fs.length){e.preventDefault();if(KPG!==2){KPG=2;}addDesignImgs(fs);}});
+  const goPg=p=>{KPG=Math.min(6,Math.max(1,p));renderStore();const hh=(document.querySelector('header')?.offsetHeight||70)+12;window.scrollTo({top:$('kSteps').getBoundingClientRect().top+scrollY-hh});};
+  $('k_prev').onclick=()=>goPg(KPG-1);$('k_next').onclick=()=>goPg(KPG+1);
+  $('kSteps').onclick=e=>{const b=e.target.closest('[data-kp]');if(b)goPg(+b.dataset.kp);};
+  $('k_sum').onclick=e=>{const b=e.target.closest('[data-kp]');if(b)goPg(+b.dataset.kp);};
+  $('kForm').addEventListener('input',kAuto);$('kForm').addEventListener('change',kAuto);$('kForm').addEventListener('click',e=>{if(e.target.closest('button'))setTimeout(kAuto,0);});
+  $('k_arch').onclick=()=>openArchive();
+  $('k_send').onclick=()=>saveKarte(true);$('k_saveDraft').onclick=()=>saveKarte(false);
+  $('k_new').onclick=()=>{lsSet('_draft',null);KSAVE={st:'',at:null};KFORM=false;KARTE=blankKarte();KPG=1;$('kAdmin').open=false;renderStore();window.scrollTo({top:0});};
+}
+function kLocked(){return !['下書き','本社待ち'].includes(KARTE.status);}
+async function addDesignImgs(files){if(kLocked())return toast('本社が対応中のため、画像は追加できません');KARTE.design=KARTE.design||[];
+  const imgs=files.filter(f=>f&&f.type.startsWith('image/'));if(!imgs.length)return toast('画像ファイルを入れてください');
+  const room=6-KARTE.design.length;if(room<=0)return toast('画像は6枚までです');if(imgs.length>room)toast(`6枚までのため、${room}枚だけ追加します`);
+  for(const f of imgs.slice(0,room)){if(f.size>10*1024*1024){toast('10MBを超える画像は入れられません');continue;}const r=await putImage(f,f.name&&f.name!=='image.png'?f.name:`イメージ${KARTE.design.length+1}.png`);r.note='';KARTE.design.push(r);}
+  KARTE.updatedAt=new Date().toISOString();renderStore();kAuto();toast('画像を追加しました');}
+function karteMissing(k){const m=[];if(!k.name)m.push('お名前');if(!k.staff)m.push('担当販売員');if(!(+k.bmax>0)&&!k.bnote)m.push('ご予算');if(!k.req)m.push('デザインのご要望');return m;}
+/* ═════════ 店舗↔本社のやりとり：一次保存・送信確認・見積書受領・受注連絡 ═════════ */
+let KFORM=false,KSAVE={st:'',at:null},kAutoT=null;
+const K_ORDER=['下書き','本社待ち','本社対応中','見積発行','提案済み','受注','完成・精算'];
+function kMergeHQ(k){const s=KARTES[k.id];if(!s)return k;['caseId','seen','seenAt'].forEach(f=>{if(s[f]!=null)k[f]=s[f];});
+  if(K_ORDER.indexOf(s.status)>K_ORDER.indexOf(k.status))k.status=s.status;return k;}
+function kHasContent(k){return !!(k.name||k.req||(k.design||[]).length||(k.refs||[]).length||+k.bmax>0);}
+function kAuto(){if(line!=='store'||KARTE.status!=='下書き')return;KARTE.updatedAt=new Date().toISOString();
+  if(!kHasContent(KARTE))return;
+  const okL=lsSet('_draft',KARTE);KSAVE={st:okL?'local':'ng',at:new Date()};kSaveLabel();
+  if(KARTE.status!=='下書き')return;
+  clearTimeout(kAutoT);kAutoT=setTimeout(async()=>{if(KARTE.status!=='下書き')return;const snap=JSON.parse(JSON.stringify(KARTE));
+    let ok=false;if(CAP.mode==='shared'){try{await CAP.db.doc('kartes/'+snap.id).set(snap);ok=true;}catch(e){}}else{KARTES[snap.id]=snap;ok=lsSet('_k',KARTES);}
+    KSAVE={st:ok?(CAP.mode==='shared'?'cloud':'local'):(KSAVE.st==='ng'?'ng':'local'),at:new Date()};kSaveLabel();},2500);}
+function kSaveLabel(){const e=$('kSave');if(!e)return;const t=KSAVE.at?KSAVE.at.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'';
+  const txt=KARTE.status!=='下書き'?'':KSAVE.st==='cloud'?`自動保存済み ${t}`:KSAVE.st==='local'?`この端末に一時保存 ${t}`:KSAVE.st==='ng'?'一時保存できていません':'',cls='ksave '+KSAVE.st;
+  if(e.className!==cls)e.className=cls;if(e.textContent!==txt)e.textContent=txt;}
+function kRestore(){const d=lsGet('_draft');if(d&&d.id&&d.status==='下書き'&&kHasContent(d)){KARTE=d;KSAVE={st:'local',at:new Date(d.updatedAt||Date.now())};return true;}return false;}
+async function saveKarte(send){
+  if(KARTE.metalColor!=null)kMetalCompose();
+  const k=KARTE,miss=karteMissing(k);
+  if(send&&miss.length){toast('未入力：'+miss.join('・'));return;}
+  clearTimeout(kAutoT);kMergeHQ(k);
+  const prev={status:k.status,sentAt:k.sentAt,seen:k.seen};
+  if(send&&k.status==='下書き'){k.status='本社待ち';k.sentAt=new Date().toISOString();k.seen=false;const t=new Date();k.no=k.no||`K${String(t.getFullYear()).slice(2)}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}-${String(t.getHours()).padStart(2,'0')}${String(t.getMinutes()).padStart(2,'0')}`;}
+  else if(send){k.resentAt=new Date().toISOString();k.seen=false;}
+  k.updatedAt=new Date().toISOString();
+  const b=$('k_send');if(send){b.disabled=true;b.textContent='送信しています…';}
+  let ok=await put('kartes',k.id,k);
+  if(ok&&send&&CAP.mode==='shared'){try{const s=await CAP.db.doc('kartes/'+k.id).get();const dd=s&&(typeof s.data==='function'?s.data():s);ok=!!dd&&dd.sentAt===k.sentAt&&dd.status!=='下書き';}catch(e){ok=false;}}
+  if(send)b.disabled=false;
+  if(!ok){Object.assign(k,prev);lsSet('_draft',k);KSAVE={st:'local',at:new Date()};
+    if(send)toast('本社に送信できませんでした。通信を確かめて、もう一度送ってください（内容はこの端末に残っています）');renderStore();return;}
+  KARTES[k.id]=JSON.parse(JSON.stringify(k));
+  if(send){lsSet('_draft',null);KFORM=false;toast('本社に送りました');window.scrollTo({top:0});}else{KSAVE={st:CAP.mode==='shared'?'cloud':'local',at:new Date()};toast('下書きを保存しました');}
+  renderStore();}
+/* 送信後のハブ（店舗）：状況・見積書・受注連絡 */
+function kTimeline(k){const P=k.caseId&&PROPS[k.caseId],o=k.orderReq,st=K_ORDER.indexOf(k.status);
+  return [['カルテを本社に送信',k.sentAt,true],['本社が受信を確認',k.seenAt,!!k.seen||st>=2],['本社がデザイン・見積を作成中',null,st>=2],['見積書が届きました',P?.pdf?.at||P?.updatedAt,!!P],['受注を本社に連絡',o?.at,!!o],['本社が受注を確定',null,st>=5],['完成・ご精算',null,st>=6]];}
+function renderHub(){const H=$('kHub'),k=KARTE,sent=k.status!=='下書き';if(H.hidden!==!sent)H.hidden=!sent;if(!sent)return;
+  const P=k.caseId&&PROPS[k.caseId],o=k.orderReq,st=K_ORDER.indexOf(k.status),TL=kTimeline(k),nowI=TL.findIndex(x=>!x[2]);
+  const items=P?.items||[],it=items.find(x=>x.slot===(k.orderDraft?.slot))||items[0],od=k.orderDraft=k.orderDraft||{};
+  if(it&&!od.slot)od.slot=it.slot;if(!od.date)od.date=iso(new Date());if(it&&(od.paid==null||od.paid===''))od.paid=it.deposit;
+  let act='';
+  if(st>=5)act=`<div class="chk OK"><b>受注確定</b><div>本社が受注を確定しました。制作に入ります。<small>完成時に実際の地金重量・石目でご精算します（お見積金額が上限）。</small></div></div>${o?`<div class="btns"><button class="btn ghost" id="h_opdf">ご注文書（控え）PDF</button></div>`:''}`;
+  else if(o)act=`<div class="chk OK"><b>連絡済み</b><div>受注を本社に連絡しました（${fmtDT(o.at)}）。<small>${esc(o.slot)}・内金 ${yen(+o.paid||0)}・受注日 ${esc(o.date)}。本社の確定をお待ちください。</small></div></div><div class="btns"><button class="btn gold" id="h_opdf">ご注文書（控え）PDF</button><button class="btn ghost sm" id="h_ocancel">連絡を取り消す</button></div>`;
+  else if(P&&it)act=`<h3>ご注文が決まったら：受注を本社に連絡</h3>
+    <div class="fr3">${items.length>1?`<label class="f"><span>ご注文の案</span><select id="h_slot">${items.map(x=>`<option${x.slot===od.slot?' selected':''}>${esc(x.slot)}</option>`).join('')}</select></label>`:''}
+      <label class="f"><span>受注日</span><input type="date" id="h_date" value="${esc(od.date)}"></label>
+      <label class="f"><span>内金 受領額（円）</span><input type="number" id="h_paid" step="1000" min="0" value="${esc(od.paid??'')}"></label>
+      ${k.item==='ring'?`<label class="f"><span>確定サイズ（号）</span><input type="number" id="h_size" step="0.5" min="1" max="30" value="${esc(od.size??(+k.size||''))}"></label>`:''}
+      <label class="f"><span>お渡し希望日</span><input type="date" id="h_due" value="${esc(od.due??k.due??'')}"></label></div>
+    <label class="f"><span>本社への連絡事項（刻印・お渡し方法など）</span><textarea id="h_note" placeholder="例：刻印 2026.11.22 / 店頭お渡し">${esc(od.note||'')}</textarea></label>
+    <p class="muted" style="margin:0">${esc(it.slot)}　お見積金額（税込・上限）<b>${yen(it.inc)}</b>・内金の目安 ${yen(it.deposit)}（50%）</p>
+    <div class="btns"><button class="btn gold kbtn" id="h_order">受注を本社に連絡する</button></div>`;
+  else act=`<p class="muted" style="margin:0">本社から見積書が届くと、ここに表示されます。この画面を開いたままでも、届いた時点で自動で切り替わります。</p>`;
+  H.innerHTML=`<div class="kdh"><h2>${esc(k.name||'')} 様のカルテ</h2><span class="muted">受付番号 ${esc(k.no||k.id)}</span></div>
+    ${progressHTML(k)}
+    ${CAP.mode!=='shared'?'<div class="chk 注意"><b>共有なし</b><div>この端末は本社とつながっていません。<small>このままでは本社に届きません。アプリを開き直してください。</small></div></div>':''}
+    ${P?`<div class="hq"><h3>本社からの見積書</h3><div class="btns">${P.pdf?`<button class="btn gold kbtn" id="h_pdf">見積書PDFを保存・印刷</button>`:''}<button class="btn ghost kbtn" id="h_view">見積書を画面で見せる</button></div>
+      <p class="muted" style="margin:0">${items.map(x=>`${esc(x.slot)} ${yen(x.inc)}`).join('　')}${items[0]?`　有効期限 ${esc(items[0].valid||'')}`:''}</p></div>`:''}
+    <div class="hq">${act}</div>
+    <div class="hq">${msgHTML(k)}</div>
+    <div class="hq"><h3>商談の結果（アーカイブ）</h3><p class="muted" style="margin:0">${({open:'商談中です。',won:'受注。'+((k.result?.reasons||[]).length||k.result?.note?'決め手：'+esc((k.result.reasons||[]).join('、')||k.result.note):'決め手がまだ記録されていません。'),lost:'ボツ（見送り）。理由：'+esc((k.result?.reasons||[]).join('、')||k.result?.note||'')})[kResult(k)]||''}</p><div class="btns"><button class="btn ghost sm" id="h_res">${kResult(k)==='won'?'決め手を記録する':kResult(k)==='lost'?'記録を直す':'見送り（ボツ）・結果を記録する'}</button></div></div>
+    <div class="btns"><button class="btn ghost sm" id="h_form">${KFORM?'記入内容を閉じる':kLocked()?'記入内容を見る':'記入内容を見る・修正して送り直す'}</button></div>`;
+  const q=id=>H.querySelector('#'+id);
+  bindProgress(H,renderStore);bindMsg(H,renderStore);
+  q('h_res').onclick=()=>openArchive(k.id);
+  q('h_form').onclick=()=>{KFORM=!KFORM;if(KFORM)KPG=6;renderStore();};
+  q('h_pdf')?.addEventListener('click',async()=>{await getPdf(k.caseId,q('h_pdf'));if(!k.pdfGotAt)kPut(k.id,x=>{x.pdfGotAt=new Date().toISOString();}).then(()=>renderStore());});
+  q('h_view')?.addEventListener('click',()=>{clId=k.caseId;setLine('client');});
+  [['h_slot','slot'],['h_date','date'],['h_paid','paid'],['h_size','size'],['h_due','due'],['h_note','note']].forEach(([id,f])=>{const el=q(id);if(el)el.onchange=()=>{od[f]=el.value;if(f==='slot'){od.paid=items.find(x=>x.slot===od.slot)?.deposit??'';renderHub();}};});
+  q('h_order')?.addEventListener('click',()=>sendOrder(it));
+  q('h_ocancel')?.addEventListener('click',async()=>{const b=q('h_ocancel');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='もう一度押すと取り消します';return;}kMergeHQ(k);if(K_ORDER.indexOf(k.status)>=5)return toast('本社が受注を確定済みです。本社に連絡してください');k.orderReq=null;k.updatedAt=new Date().toISOString();if(await put('kartes',k.id,k)){KARTES[k.id]=JSON.parse(JSON.stringify(k));toast('受注の連絡を取り消しました');renderStore();}});
+  q('h_opdf')?.addEventListener('click',()=>orderPdf(k,q('h_opdf')));}
+async function sendOrder(it){const k=KARTE,od=k.orderDraft||{};
+  if(!(+od.paid>0))return toast('内金の受領額を入れてください');if(!od.date)return toast('受注日を入れてください');
+  kMergeHQ(k);k.orderReq={slot:it.slot,title:it.title||'',quoteNo:it.quoteNo||'',inc:it.inc,deposit:it.deposit,date:od.date,paid:+od.paid,size:od.size?+od.size:null,due:od.due||'',note:od.note||'',at:new Date().toISOString()};
+  k.updatedAt=k.orderReq.at;const b=$('kHub').querySelector('#h_order');b.disabled=true;b.textContent='連絡しています…';
+  let ok=await put('kartes',k.id,k);
+  if(ok&&CAP.mode==='shared'){try{const s=await CAP.db.doc('kartes/'+k.id).get();const dd=s&&(typeof s.data==='function'?s.data():s);ok=!!dd?.orderReq&&dd.orderReq.at===k.orderReq.at;}catch(e){ok=false;}}
+  if(!ok){k.orderReq=null;toast('本社に連絡できませんでした。通信を確かめて、もう一度押してください');renderStore();return;}
+  KARTES[k.id]=JSON.parse(JSON.stringify(k));toast('受注を本社に連絡しました');renderStore();}
+function dqOrder(P,it,o){const img=(it.images||[])[0];
+  return `<div class="dq">${dqHead(P,o.date,'ご 注 文 書')}<div class="bd">
+    <div class="plan"><b>${esc((it.slot||'').replace('案',''))}：${esc(it.title||'')}</b>${it.line?`<br>内容：${esc(it.line)}`:''}</div>
+    ${img?`<div class="imgs n1" style="grid-template-columns:170px;margin-top:12px"><figure><img src="${esc(img.url)}" alt=""></figure></div>`:''}
+    <table class="dqst" style="margin-top:8px"><tr><td>ご注文金額（税込・上限）</td><td class="n" style="font-size:20px">${yen(it.inc)}</td></tr><tr><td>内金（本日お預り）</td><td class="n">${yen(o.paid)}</td></tr><tr class="tot"><td>残金（上限）</td><td class="n">${yen(it.inc-o.paid)}</td></tr></table>
+    <table class="dqst" style="margin-top:4px;font-size:13.5px"><tr><td>ご注文日</td><td class="n">${esc(o.date)}</td></tr>${o.size?`<tr><td>リングサイズ</td><td class="n">${o.size}号</td></tr>`:''}<tr><td>お渡し予定</td><td class="n">${o.due?esc(o.due)+' 頃':esc(it.lead||'')}</td></tr>${o.note?`<tr><td>ご指定</td><td class="n">${esc(o.note)}</td></tr>`:''}</table>
+    <div class="cond"><b>お見積の条件</b>　${(it.basis||[]).map(([a,b])=>`${esc(a)} ${esc(b)}`).join('・')}<br>
+      完成時に実際の地金重量・石目でご精算いたします。<b>ご注文金額を上回るご請求はいたしません。</b>地金重量・石目がお見積を下回った場合は、その分を減額いたします。<br>
+      オーダーメイドのため、制作開始後のキャンセル・デザイン変更はお受けできない場合がございます。画像はイメージです。使用する石はすべて天然石です。</div>
+    <div class="sign"><div>お客様ご署名<i></i></div><div>担当<i></i></div></div>
+  </div>${dqFoot(P,o.quoteNo||it.quoteNo)}</div>`;}
+async function orderPdf(k,btn){const P=PROPS[k.caseId],o=k.orderReq;if(!P||!o)return;const it=P.items.find(x=>x.slot===o.slot)||P.items[0];if(!it)return toast('見積書が見つかりません');
+  const t=btn.textContent;btn.disabled=true;btn.textContent='PDFを作っています…';
+  const box=document.createElement('div');box.style.cssText='position:fixed;left:-12000px;top:0;width:820px';box.innerHTML=`<div class="dqfit" style="max-width:none;width:794px">${dqOrder(P,it,o)}</div>`;document.body.appendChild(box);fitDQ(box);
+  let blob=null;try{blob=await dqPdfBlob(box);}catch(e){toast('PDFを作れませんでした');}box.remove();btn.disabled=false;btn.textContent=t;
+  if(blob)await saveFile(`ご注文書_${(P.name||'').replace(/[\\/:*?"<>|\s（）()]/g,'')}様_${(o.date||'').replace(/-/g,'')}.pdf`,blob);}
+/* 本社：店舗からの受注連絡 */
+function orderReqs(){return Object.values(KARTES).filter(k=>k.orderReq&&k.caseId&&CASES[k.caseId]&&!CASES[k.caseId].order?.done);}
+function renderOrderReqs(){const el=$('in_orders');if(!el)return;const L=orderReqs();el.hidden=!L.length;if(!L.length)return;
+  el.innerHTML=`<h2>店舗からの受注連絡</h2><div class="list">${L.map(k=>{const o=k.orderReq;return `<div class="row sel" style="grid-template-columns:minmax(0,1fr)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(k.name)} 様　${esc(o.slot)}</b><span class="stb st6">受注連絡</span></div>
+    <span class="muted">${esc(k.store)}・${esc(k.staff)}・受注日 ${esc(o.date)}・内金 ${yen(o.paid)}・連絡 ${fmtDT(o.at)}</span><div class="btns"><button class="btn gold sm" data-oreq="${k.caseId}">⑥ 受注処理へ</button></div></div>`;}).join('')}</div>`;
+  el.querySelectorAll('[data-oreq]').forEach(b=>b.onclick=()=>{openCase(b.dataset.oreq,true);go('order');});}
+function renderOrderReqBox(){const el=$('o_req');if(!el)return;const k=KARTES[CASE.kId],o=k?.orderReq;el.hidden=!o;if(!o)return;
+  const q=CASE.quote,mis=q&&o.quoteNo&&o.quoteNo!==q.no,same=CASE.order.date===o.date&&+CASE.order.paid===+o.paid;
+  el.innerHTML=`<h2>店舗からの受注連絡</h2><table class="kv"><tr><th>連絡</th><td>${fmtDT(o.at)}　${esc(k.store)}店・${esc(k.staff)}</td></tr><tr><th>ご注文の案</th><td>${esc(o.slot)}　${esc(o.title)}（${yen(o.inc)}）</td></tr><tr><th>受注日</th><td>${esc(o.date)}</td></tr><tr><th>内金 受領額</th><td><b>${yen(o.paid)}</b></td></tr>${o.size?`<tr><th>確定サイズ</th><td>${o.size}号${CASE.d.item==='ring'&&+CASE.d.size!==+o.size?`　<b style="color:var(--warn)">見積の仕様は${CASE.d.size}号です</b>`:''}</td></tr>`:''}${o.due?`<tr><th>お渡し希望日</th><td>${esc(o.due)}</td></tr>`:''}${o.note?`<tr><th>連絡事項</th><td>${esc(o.note)}</td></tr>`:''}</table>
+    ${mis?`<div class="chk 注意"><b>要確認</b><div>店舗が受注した見積（${esc(o.quoteNo)}）と、現在の見積（${esc(q.no)}）が違います。<small>受注した案の内容・金額で確定してよいか確かめてください。</small></div></div>`:''}
+    ${CASE.order.done?'':`<div class="btns"><button class="btn${same?' ghost':' gold'}" id="o_take">${same?'取り込み済み':'受注日・内金を下の欄に取り込む'}</button></div>`}`;
+  el.querySelector('#o_take')?.addEventListener('click',()=>{CASE.order.date=o.date;CASE.order.paid=+o.paid;if(o.note&&!(CASE.order.note||'').includes(o.note))CASE.order.note=((CASE.order.note||'')+' '+o.note).trim();touch();toast('取り込みました。内容を確かめて「受注を確定する」を押してください');});}
+async function getPdf(cid,btn){const p=PROPS[cid]?.pdf;if(!p)return;btn&&(btn.disabled=true);try{const b=await (await fetch(p.url)).blob();await saveFile(p.name,b);}catch(e){toast('PDFを取り出せませんでした');}btn&&(btn.disabled=false);}
+function kSummary(k){const cs=k.cs||{},row=(p,l,v)=>`<button type="button" data-kp="${p}"><span>${l}</span><b>${v}</b><i>変更</i></button>`;
+  const mc=K_MCOL.find(x=>x[0]===(k.metalColor??''));
+  return row(1,'ジュエリー',`${ITEMS_JP[k.item]}${k.item==='ring'?`・${+k.size?k.size+'号':'サイズ未計測'}`:''}・${esc(k.purpose)}`)+
+    row(2,'デザイン',`${esc((k.req||'（未記入）').slice(0,60))}${(k.req||'').length>60?'…':''}<small>${(k.moods||[]).map(m=>STYLES[m]?.n).filter(Boolean).join('・')||'雰囲気：未選択'}・画像 ${(k.design||[]).length}枚</small>`)+
+    row(3,'地金・石',`${mc?mc[1]:'おまかせ'}${mc&&['YG','PG','WG'].includes(mc[0])?`（${k.karat||'K18'}）`:''}・${esc(K_STONE.find(x=>x[0]===k.stone)?.[1]||k.stone)}${k.stoneNote?`（${esc(k.stoneNote)}）`:''}`)+
+    row(4,'お手持ち品',cs.has==='yes'?`使いたい・写真 ${(k.refs||[]).length}件`:'使わない')+
+    row(5,'ご予算・時期',`${k.bnote?'ご相談':+k.bmax?yen(+k.bmax)+'まで':'（未記入）'}・${k.dueNote==='特になし'?'特に決まっていない':esc(k.due||'')}`);}
+function renderStore(){
+  $('kArchive').hidden=!KARCH;$('kWrap').hidden=KARCH;if(KARCH){renderArchive($('kArchive'));return;}
+  const kk=KARTES[KARTE.id];if(kk){kMergeHQ(KARTE);if(kk.orderReq&&!KARTE.orderReq)KARTE.orderReq=kk.orderReq;if((kk.msgs||[]).length>(KARTE.msgs||[]).length)KARTE.msgs=kk.msgs;}
+  renderHub();kSaveLabel();{const hide=KARTE.status!=='下書き'&&!KFORM;$('kSteps').hidden=hide;$('kForm').hidden=hide;}
+  kMetalParse(KARTE);KARTE.design=KARTE.design||[];KARTE.moods=KARTE.moods||[];
+  {const c=KARTE.cs;const m=Math.max(+c.L||0,+c.W||0);if(m)c.mm=m;}
+  syncBinds();['k_item','k_purpose','k_moods','k_mcolor','k_karat','k_stone','k_cs','k_bud','k_dueC'].forEach(i=>$(i)._sync());
+  $('k_sizeL').hidden=KARTE.item!=='ring';$('k_csBox').hidden=KARTE.cs.has!=='yes';$('k_karatL').hidden=!['YG','PG','WG'].includes(KARTE.metalColor);
+  const locked=kLocked();
+  $('kForm').querySelectorAll('input,select,textarea,.kcards button,.kchips button,.khint button').forEach(el=>el.disabled=locked);
+  document.querySelectorAll('#kForm .kpage').forEach(p=>p.hidden=+p.dataset.p!==KPG);
+  const miss=karteMissing(KARTE),done=[1,!!KARTE.req,1,1,+KARTE.bmax>0||!!KARTE.bnote,!!KARTE.name];
+  $('kSteps').innerHTML=KPAGES.map((t,i)=>`<li class="${KPG===i+1?'on':done[i]&&i+1<KPG?'done':''}"><button type="button" data-kp="${i+1}"><i>${i+1}</i><span>${t}</span></button></li>`).join('');
+  $('k_prev').hidden=KPG===1;$('k_next').hidden=KPG===6;$('k_send').hidden=KPG!==6||locked;$('k_pg').textContent=`${KPG} / 6`;
+  $('k_send').textContent=KARTE.status==='本社待ち'?'修正して本社に送り直す':'本社に送る';
+  $('kState').innerHTML=KARTES[KARTE.id]?stBadge(KARTE):'';
+  $('k_saveDraft').hidden=locked||KARTE.status!=='下書き';
+  $('k_ddrop').classList.toggle('off',locked);
+  $('k_drefs').innerHTML=KARTE.design.map((a,i)=>`<div class="dref"><button type="button" class="dimg" data-dlb="${i}"><img src="${esc(a.url)}" alt="イメージ${i+1}"></button><input type="text" data-dnote="${i}" value="${esc(a.note||'')}" placeholder="気に入ったところ（例：石の台の形）" ${locked?'disabled':''}>${locked?'':`<button type="button" class="ddel" data-ddel="${i}" aria-label="削除">×</button>`}</div>`).join('');
+  $('k_drefs').querySelectorAll('[data-dlb]').forEach(b=>b.onclick=()=>lightbox(KARTE.design[+b.dataset.dlb].url));
+  $('k_drefs').querySelectorAll('[data-dnote]').forEach(el=>el.oninput=()=>{KARTE.design[+el.dataset.dnote].note=el.value;KARTE.updatedAt=new Date().toISOString();});
+  $('k_drefs').querySelectorAll('[data-ddel]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.ddel;await dropImage(KARTE.design[i]);KARTE.design.splice(i,1);renderStore();});
+  $('k_refs').innerHTML=KARTE.refs.map((a,i)=>`<div class="att">${a.pdf?'<div class="doc">PDF</div>':`<img src="${esc(a.url)}" alt="${esc(a.name)}">`}<span>${esc(a.name)}</span>${locked?'':`<button type="button" data-kdel="${i}" aria-label="${esc(a.name)}を削除">×</button>`}</div>`).join('')||'<span class="muted">まだありません。</span>';
+  $('k_refs').querySelectorAll('[data-kdel]').forEach(b=>b.onclick=async()=>{const a=KARTE.refs[+b.dataset.kdel];await dropImage(a);KARTE.refs.splice(+b.dataset.kdel,1);renderStore();});
+  $('k_sum').innerHTML=kSummary(KARTE);
+  const R=[];
+  if(miss.length)R.push({lv:'注意',t:'未入力：'+miss.join('・'),s:'入れてから「本社に送る」を押してください。'});
+  if(KARTE.cs.has==='yes'){const info=STONEINFO[KARTE.cs.type]||{};if(info.lab)R.push({lv:'NG',t:'ラボグロウンダイヤはお預かりできません',s:'ブランド方針（天然石のみ）。'});if(KARTE.cs.type!=='石なし（その他の品のみ）'&&!(+KARTE.cs.L>0&&+KARTE.cs.W>0))R.push({lv:'注意',t:'お預り石の縦・横が未入力です（販売員）',s:'ノギスで測った値があると本社の設計が早くなります。'});}
+  const PP=KARTE.caseId&&PROPS[KARTE.caseId];if(PP?.pdf)R.push({lv:'OK',t:'本社から見積書（PDF）が届きました',s:`${fmtDT(PP.pdf.at)}。販売員メニューの「見積書PDF」で保存・印刷できます。`});
+  else if(locked)R.push({lv:'OK',t:'本社が対応中です',s:'内容の変更は本社に連絡してください。'});
+  else if(KARTE.status==='本社待ち')R.push(KARTE.seen?{lv:'OK',t:'本社が受信を確認しました',s:`${new Date(KARTE.seenAt).toLocaleString('ja-JP')}。案件になるまでは修正して送り直せます。`}:{lv:'注意',t:'送信済み・本社はまだ確認していません',s:`送信 ${KARTE.sentAt?new Date(KARTE.sentAt).toLocaleString('ja-JP'):''}`});
+  if(!R.length)R.push({lv:'OK',t:'入力がそろいました',s:'「本社に送る」を押してください。'});
+  $('k_checks').innerHTML=KPG===6?checkHTML(R):'';$('k_checks').style.minHeight=KPG===6?'170px':'';
+  const ks=Object.values(KARTES).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
+  $('k_list').innerHTML=ks.length?ks.map(k=>{const cid=k.caseId,p=cid&&PROPS[cid];return `<div class="row${k.id===KARTE.id?' sel':''}"><div><b>${esc(k.name||'（お名前未入力）')}</b><span class="muted">${esc(k.store)}・${ITEMS_JP[k.item]}・${k.sentAt?'送信 '+new Date(k.sentAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'未送信'}${k.seenAt?'・受信確認 '+new Date(k.seenAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span></div>
+    <div class="btns" style="justify-content:flex-end">${stBadge(k)}<button class="chipbtn" data-kopen="${k.id}">開く</button>${p?.pdf?`<button class="chipbtn gold" data-kpdf="${cid}">見積書PDF</button>`:''}${p?`<button class="chipbtn" data-kcl="${cid}">見積書を見る</button>`:''}</div></div>`;}).join(''):'<div class="empty">まだカルテはありません。</div>';
+  $('k_list').querySelectorAll('[data-kopen]').forEach(b=>b.onclick=()=>{KARTE=JSON.parse(JSON.stringify(KARTES[b.dataset.kopen]));KPG=6;KFORM=false;$('kAdmin').open=false;renderStore();window.scrollTo({top:0});});
+  $('k_list').querySelectorAll('[data-kpdf]').forEach(b=>b.onclick=()=>getPdf(b.dataset.kpdf,b));
+  $('k_list').querySelectorAll('[data-kcl]').forEach(b=>b.onclick=()=>{clId=b.dataset.kcl;setLine('client');});
+}
+
+/* ═════════ 案件アーカイブ（一覧・受注／ボツの振分け） ═════════ */
+const WON_R=['デザイン（画像）が気に入った','価格がご予算内だった','見積が上限・減額ありの安心感','お手持ちの石・品を活かせた','納期が合った（記念日に間に合う）','販売員の提案・対応','ブランドへの信頼','その他'];
+const LOST_R=['価格がご予算を超えた','デザインがイメージと違った','納期が合わなかった','他社・他ブランドで購入','当店の既製品を購入','検討中のままご連絡なし','お手持ちの石・品が使えなかった','ご家族の意向・ご事情','見積書の提示までに時間がかかった','その他'];
+let KARCH=false,ARF={tab:'all',store:'',open:null,q:''};
+function kResult(k){if(k.status==='下書き')return 'draft';if(K_ORDER.indexOf(k.status)>=5||k.orderReq)return 'won';if(k.result?.type==='lost')return 'lost';return 'open';}
+const RES_JP={open:'商談中',won:'受注',lost:'ボツ',draft:'下書き'};
+function kAmount(k){const P=k.caseId&&PROPS[k.caseId];if(k.orderReq?.inc)return k.orderReq.inc;return P?.items?.[0]?.inc||0;}
+function archRows(){return Object.values(KARTES).filter(k=>k.status!=='下書き').filter(k=>!ARF.store||k.store===ARF.store).sort((a,b)=>(b.sentAt||b.updatedAt||'').localeCompare(a.sentAt||a.updatedAt||''));}
+function topReasons(L){const m={};L.forEach(k=>(k.result?.reasons||[]).forEach(r=>m[r]=(m[r]||0)+1));return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,3);}
+function renderArchive(el){if(!el)return;const all=archRows(),by=t=>all.filter(k=>kResult(k)===t),won=by('won'),lost=by('lost'),open=by('open');
+  const L=ARF.tab==='all'?all:by(ARF.tab),stores=[...new Set(Object.values(KARTES).map(k=>k.store).filter(Boolean))].sort(),closed=won.length+lost.length;
+  const d=s=>s?new Date(s).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}):'';
+  const reasonCell=k=>{const r=k.result;if(!r||(!(r.reasons||[]).length&&!r.note))return '<span class="muted">未記入</span>';return `${(r.reasons||[]).map(x=>`<span class="rtag">${esc(x)}</span>`).join('')}${r.note?`<div class="muted">${esc(r.note)}</div>`:''}${k.review?.text?`<div class="rvw"><b>振り返り</b>（${new Date(k.review.at).toLocaleDateString('ja-JP')}）${esc(k.review.text)}</div>`:''}`;};
+  const editor=k=>{const t=kResult(k),fixedWon=K_ORDER.indexOf(k.status)>=5||!!k.orderReq,E=ARF.edit=ARF.edit&&ARF.edit.id===k.id?ARF.edit:{id:k.id,type:t==='open'?'open':t,reasons:[...(k.result?.reasons||[])],note:k.result?.note||'',review:k.review?.text||''};
+    const RL=E.type==='won'?WON_R:E.type==='lost'?LOST_R:[];
+    return `<tr class="ared"><td colspan="9"><div class="stack">
+      <div class="kchips">${[['open','商談中'],['won','受注'],['lost','ボツ（見送り）']].map(([v,l])=>`<button type="button" data-etype="${v}" class="${E.type===v?'on':''}" ${fixedWon&&v!=='won'?'disabled':''}>${l}</button>`).join('')}</div>
+      ${fixedWon?'<p class="muted" style="margin:0">受注の連絡・確定があるため、結果は「受注」です。</p>':''}
+      ${E.type==='open'?'<p class="muted" style="margin:0">商談が決まったら「受注」、見送りになったら「ボツ」を選び、理由を記録します。</p>':`<h3 style="margin:0">${E.type==='won'?'何が決め手になりましたか（複数可）':'決まらなかった理由（複数可）'}</h3>
+      <div class="khint">${RL.map(r=>`<button type="button" data-er="${esc(r)}" class="${E.reasons.includes(r)?'on':''}">${esc(r)}</button>`).join('')}</div>
+      <label class="f"><span>${E.type==='won'?'決め手の詳しい内容（お客様の言葉など）':'詳しい経緯（お客様の言葉・次回への申し送りなど）'}</span><textarea data-enote>${esc(E.note)}</textarea></label>
+      <label class="f"><span>後からの振り返り（時間がたって気づいたこと・次の商談に活かすこと）${k.review?.at?`　最終記入 ${new Date(k.review.at).toLocaleDateString('ja-JP')}`:''}</span><textarea data-erev placeholder="${E.type==='won'?'例：納品後のお客様の反応／見積と実重量の差／次に勧めたい提案':'例：見積を初回来店の3日以内に出せていれば決まった可能性／予算の聞き方'}">${esc(E.review)}</textarea></label>`}
+      <div class="btns"><button class="btn gold" data-esave>記録する</button><button class="btn ghost" data-ecancel>閉じる</button></div></div></td></tr>`;};
+  el.innerHTML=`<div class="kdh"><h2>案件アーカイブ</h2><div class="btns">${stores.length>1?`<select data-fstore style="width:auto"><option value="">全店舗</option>${stores.map(s=>`<option${s===ARF.store?' selected':''}>${esc(s)}</option>`).join('')}</select>`:''}<button class="btn ghost sm" data-csv>一覧をCSVで保存</button>${el.id==='kArchive'?'<button class="btn ghost sm" data-aclose>閉じる</button>':''}</div></div>
+    <div class="astat"><div><b>${all.length}</b><span>案件</span></div><div><b>${open.length}</b><span>商談中</span></div><div><b>${won.length}</b><span>受注</span></div><div><b>${lost.length}</b><span>ボツ</span></div><div><b>${closed?Math.round(won.length/closed*100)+'%':'—'}</b><span>受注率（決着分）</span></div><div><b>${yen(won.reduce((a,k)=>a+kAmount(k),0))}</b><span>受注金額（税込）</span></div></div>
+    <div class="atabs">${[['all','すべて',all.length],['open','商談中',open.length],['won','受注案件',won.length],['lost','ボツ案件',lost.length]].map(([v,l,n])=>`<button type="button" data-atab="${v}" class="${ARF.tab===v?'on':''}">${l}（${n}）</button>`).join('')}</div>
+    ${ARF.tab==='won'||ARF.tab==='lost'?(()=>{const T=topReasons(L);return T.length?`<p class="muted" style="margin:0">多い${ARF.tab==='won'?'決め手':'理由'}：${T.map(([r,n])=>`${esc(r)}（${n}件）`).join('、')}</p>`:'';})():''}
+    <div class="tbl"><table class="arch"><tr><th>受付日</th><th>お客様</th><th>店舗・担当</th><th>アイテム</th><th class="n">ご予算</th><th class="n">${ARF.tab==='won'?'受注金額':'見積金額'}</th><th>結果</th><th>${ARF.tab==='won'?'決め手':ARF.tab==='lost'?'決まらなかった理由':'決め手／理由'}</th><th></th></tr>
+    ${L.length?L.map(k=>{const t=kResult(k),a=kAmount(k);return `<tr class="${ARF.open===k.id?'sel':''}"><td>${d(k.sentAt)}<div class="muted">${esc(k.no||'')}</div></td><td><b>${esc(k.name||'')}</b> 様</td><td>${esc(k.store||'')}<div class="muted">${esc(k.staff||'')}</div></td><td>${ITEMS_JP[k.item]||''}<div class="muted">${esc(k.purpose||'')}</div></td><td class="n">${k.bnote?'ご相談':+k.bmax?yen(+k.bmax):''}</td><td class="n">${a?yen(a):'<span class="muted">未提示</span>'}</td><td><span class="rs ${t}">${RES_JP[t]}</span><div class="muted">${t==='won'?d(k.orderReq?.date||k.result?.at):t==='lost'?d(k.result?.at):esc(k.status==='提案済み'?'見積書 提示済み':k.status==='本社待ち'?'本社の対応待ち':'本社が作成中')}</div></td><td class="rc">${t==='open'?'':reasonCell(k)}</td><td><button class="chipbtn" data-aopen="${k.id}">${ARF.open===k.id?'閉じる':'記録'}</button></td></tr>${ARF.open===k.id?editor(k):''}`;}).join(''):'<tr><td colspan="9"><div class="empty">該当する案件はありません。</div></td></tr>'}</table></div>`;
+  const rr=()=>renderArchive(el);
+  el.querySelector('[data-fstore]')?.addEventListener('change',e=>{ARF.store=e.target.value;rr();});
+  el.querySelectorAll('[data-atab]').forEach(b=>b.onclick=()=>{ARF.tab=b.dataset.atab;ARF.open=null;rr();});
+  el.querySelectorAll('[data-aopen]').forEach(b=>b.onclick=()=>{ARF.open=ARF.open===b.dataset.aopen?null:b.dataset.aopen;ARF.edit=null;rr();});
+  el.querySelector('[data-aclose]')?.addEventListener('click',()=>{KARCH=false;renderStore();});
+  el.querySelector('[data-csv]').onclick=()=>archCsv(L);
+  const E=ARF.edit;if(E&&ARF.open){
+    el.querySelectorAll('[data-etype]').forEach(b=>b.onclick=()=>{if(E.type!==b.dataset.etype){E.type=b.dataset.etype;E.reasons=[];}rr();});
+    el.querySelectorAll('[data-er]').forEach(b=>b.onclick=()=>{const i=E.reasons.indexOf(b.dataset.er);i>=0?E.reasons.splice(i,1):E.reasons.push(b.dataset.er);b.classList.toggle('on');});
+    el.querySelector('[data-enote]')?.addEventListener('input',e=>{E.note=e.target.value;});
+    el.querySelector('[data-erev]')?.addEventListener('input',e=>{E.review=e.target.value;});
+    el.querySelector('[data-ecancel]').onclick=()=>{ARF.open=null;ARF.edit=null;rr();};
+    el.querySelector('[data-esave]').onclick=async()=>{const k=JSON.parse(JSON.stringify(KARTES[E.id]));
+      if(E.type!=='open'&&!E.reasons.length&&!E.note.trim())return toast(E.type==='won'?'決め手を1つ以上選ぶか、内容を書いてください':'理由を1つ以上選ぶか、経緯を書いてください');
+      k.result=E.type==='open'?null:{type:E.type,reasons:E.reasons,note:E.note.trim(),at:k.result?.type===E.type&&k.result.at?k.result.at:new Date().toISOString()};{const rv=(E.review||'').trim();if(E.type!=='open'&&rv!==(k.review?.text||''))k.review=rv?{text:rv,at:new Date().toISOString()}:null;}k.updatedAt=new Date().toISOString();
+      if(await put('kartes',k.id,k)){KARTES[k.id]=k;if(KARTE.id===k.id){KARTE.result=k.result;KARTE.review=k.review;}ARF.open=null;ARF.edit=null;toast('記録しました');rr();}};}}
+async function archCsv(L){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',rows=[['受付番号','受付日','お客様','店舗','担当','アイテム','用途','ご予算(税込)','見積・受注金額(税込)','結果','結果日','決め手／理由','詳細','後からの振り返り','振り返り記入日','ご要望']];
+  L.forEach(k=>{const t=kResult(k);rows.push([k.no||'',(k.sentAt||'').slice(0,10),k.name,k.store,k.staff,ITEMS_JP[k.item]||'',k.purpose,k.bnote?'ご相談':+k.bmax||'',kAmount(k)||'',RES_JP[t],t==='won'?(k.orderReq?.date||(k.result?.at||'').slice(0,10)):t==='lost'?(k.result?.at||'').slice(0,10):'',(k.result?.reasons||[]).join('／'),k.result?.note||'',k.review?.text||'',(k.review?.at||'').slice(0,10),k.req||'']);});
+  const t=new Date();await saveFile(`Sumisura案件一覧_${{all:'すべて',open:'商談中',won:'受注',lost:'ボツ'}[ARF.tab]}_${iso(t).replace(/-/g,'')}.csv`,new Blob(['﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv'}));}
+function openArchive(id,tab){ARF.tab=tab||'all';ARF.open=id||null;ARF.edit=null;if(line==='store'){KARCH=true;renderStore();window.scrollTo({top:0});}else go('archive');}
+
+/* ═════════ 進捗確認表・店舗↔本社の連絡 ═════════ */
+function kPut(id,fn){const k=JSON.parse(JSON.stringify(KARTES[id]||(KARTE.id===id?KARTE:null)));if(!k)return Promise.resolve(false);fn(k);k.updatedAt=new Date().toISOString();
+  return put('kartes',id,k).then(ok=>{if(ok){KARTES[id]=k;if(KARTE.id===id)['msgs','msgAck','chk','pdfGotAt','result','review'].forEach(f=>KARTE[f]=k[f]);}return ok;});}
+function withCase(c,fn){const sv=CASE;CASE=c;try{return fn();}catch(e){return null;}finally{CASE=sv;}}
+function progressRows(k){const c=CAP.role==='hq'&&k.caseId?CASES[k.caseId]:null,P=k.caseId&&PROPS[k.caseId],st=K_ORDER.indexOf(k.status),ch=k.chk||{},lost=k.result?.type==='lost',R=[];
+  const A=(who,t,done,at,o={})=>R.push(Object.assign({who,t,done:!!done,at:at||null},o));
+  A('店舗','お客様に「ご要望シート」を記入していただく（デザイン・ご予算・画像）',st>=1,k.sentAt);
+  A('店舗','販売員の欄（店舗・担当、お預り品の寸法）を入れて本社に送信',st>=1,k.sentAt);
+  A('本社','受信カルテを開いて内容を確認',k.seen||st>=2,k.seenAt,{tab:'inbox'});
+  A('本社','不足があれば店舗に連絡して補う → 案件にする',st>=2||!!k.caseId,null,{tab:'inbox'});
+  if(c){const I=c.img||{},mm=withCase(c,()=>matchRows());
+    A('本社','② デザイン画像：お客様のご希望に本社の補正を加え、3案を作る',(I.sheets||[]).length>0||(I.finals||[]).length>0,(I.sheets||[])[0]?.at,{tab:'image'});
+    A('本社','② 見積に回す案を選び、仕上げた画像を「採用」',(I.finals||[]).some(f=>f.pick),((I.finals||[]).find(f=>f.pick)||{}).at,{tab:'image'});
+    A('本社','② 採用画像から石の数・大きさを読み取り、数字を確かめる',!!I.read,I.read?.at,{tab:'image'});
+    A('本社','③ 仕様・3D：型・寸法・石を画像に合わせ、地金重量を見積に渡す',+c.q?.w>0,null,{tab:'design'});
+    A('本社','④ 画像と見積の照合で差がないことを確認',!!mm&&mm.length>0&&mm.every(x=>x.ok),null,{tab:'est',warn:mm&&mm.some(x=>!x.ok)?'差が残っています':''});
+    A('本社','④ 中石の単価を入れ、ご予算と見比べて見積を発行',!!c.quote,c.quote?.at,{tab:'est'});
+  }else A('本社','デザイン画像と見積を作成',st>=3||!!P,null);
+  A('本社','⑤ 見積書（Design & Quotation）を公開して店舗に送る',!!P,P?.pdf?.at||P?.updatedAt,{tab:'publish'});
+  A('店舗','見積書PDFを受け取り、保存・印刷',!!k.pdfGotAt,k.pdfGotAt);
+  A('店舗','お客様に見積書を提示して商談（上限価格・減額・内金50%を説明）',!!ch.presented||!!k.orderReq||st>=5||lost,ch.presented,{manual:'presented',by:'store'});
+  if(lost){A('店舗','見送り（ボツ）：決まらなかった理由をアーカイブに記録',true,k.result.at);}
+  else{
+    A('店舗','ご注文が決まったら内金をお預りし、受注を本社に連絡',!!k.orderReq||st>=5,k.orderReq?.at);
+    A('店舗','「ご注文書」にご署名をいただき、控えをお渡し',!!ch.orderDoc,ch.orderDoc,{manual:'orderDoc',by:'store'});
+    A('本社','⑥ 受注連絡の内容（案・サイズ・内金）を確かめて受注を確定',st>=5,c?.order?.at||null,{tab:'order'});
+    A('本社','⑥ 制作指示書を工場に渡す',!!ch.factory,ch.factory,{manual:'factory',by:'hq',tab:'order'});
+    A('店舗','決め手をアーカイブに記録',!!(k.result&&((k.result.reasons||[]).length||k.result.note)),k.result?.at);}
+  return R;}
+function progressHTML(k,opt={}){const R=progressRows(k),now=R.findIndex(r=>!r.done),done=R.filter(r=>r.done).length,role=CAP.role==='hq'&&line==='hq'?'hq':'store';
+  const days=k.sentAt?Math.floor((Date.now()-new Date(k.sentAt))/864e5):0,P=k.caseId&&PROPS[k.caseId],open=kResult(k)==='open';
+  const exp=open&&P?.items?.[0]?.valid&&P.items[0].valid<iso(new Date());
+  return `<div class="prg" data-prg="${k.id}"><div class="kdh"><h2>進捗確認表</h2><span class="muted">${done} / ${R.length} 完了${k.sentAt?`・受付から${days}日`:''}</span></div>
+    ${now>=0?`<p class="prnext"><b>次にやること（${R[now].who}）</b>${esc(R[now].t)}</p>`:'<p class="prnext ok"><b>完了</b>受注までの業務はすべて済んでいます。</p>'}
+    ${open&&!P&&days>=3?'<div class="chk 注意"><b>日数</b><div>受付から3日以上たっています。<small>2回目のご来店までに見積書を届けられるよう、優先して進めてください。</small></div></div>':''}
+    ${exp?`<div class="chk 注意"><b>期限</b><div>お見積の有効期限（${esc(P.items[0].valid)}）を過ぎています。<small>ご注文の前に、本社で見積を出し直してください。</small></div></div>`:''}
+    <ol class="prl">${R.map((r,i)=>`<li class="${r.done?'done':i===now?'now':''}"><i>${r.done?'✓':i+1}</i><span class="pw ${r.who==='店舗'?'s':'h'}">${r.who}</span><div>${esc(r.t)}${r.warn?`<small class="pwarn">${r.warn}</small>`:''}${r.at?`<small>${fmtDT(r.at)}</small>`:''}</div>
+      ${r.manual&&r.by===role?`<button class="chipbtn" data-pchk="${r.manual}">${r.done&&(k.chk||{})[r.manual]?'取り消す':'済みにする'}</button>`:r.tab&&role==='hq'&&!r.done&&i===now&&opt.nav?`<button class="chipbtn gold" data-ptab="${r.tab}">開く</button>`:''}</li>`).join('')}</ol></div>`;}
+function bindProgress(root,rerender){root.querySelectorAll('[data-pchk]').forEach(b=>b.onclick=async()=>{const id=b.closest('[data-prg]').dataset.prg,key=b.dataset.pchk;
+    if(await kPut(id,k=>{k.chk=k.chk||{};if(k.chk[key])delete k.chk[key];else k.chk[key]=new Date().toISOString();}))rerender();});
+  root.querySelectorAll('[data-ptab]').forEach(b=>b.onclick=()=>{const id=b.closest('[data-prg]').dataset.prg,k=KARTES[id];if(b.dataset.ptab==='inbox')return;if(k?.caseId&&CASES[k.caseId]){if(!CASE||CASE.id!==k.caseId)openCase(k.caseId,true);go(b.dataset.ptab);}});}
+</script>
