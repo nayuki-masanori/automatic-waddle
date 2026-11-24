@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ponte Vecchio | Su Misura 店頭カウンセリング・ご提案システム（店舗版 v8）</title>
+<style>
+:root {
+  --pv-black: #221f20;
+  --pv-charcoal: #3d393a;
+  --pv-gold: #b8965a;
+  --pv-gold-light: #dfd0b3;
+  --pv-gold-pale: #faf7f2;
+  --pv-terracotta: #c96b4b;
+  --pv-ivory: #fcfbf9;
+  --pv-white: #ffffff;
+  --pv-border: #e5e0d6;
+  --pv-border-dark: #cbc3b4;
+  --pv-muted: #78716a;
+  --font-serif: "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
+  --font-sans: "Hiragino Kaku Gothic ProN", "Meiryo", -apple-system, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--pv-ivory); color: var(--pv-black); font-family: var(--font-sans); font-size: 14px; line-height: 1.6; padding-bottom: 60px; }
+
+header {
+  background: var(--pv-white); border-bottom: 1px solid var(--pv-border);
+  padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.brand-wrap { display: flex; align-items: center; gap: 14px; }
+.brand-logo { font-family: Georgia, serif; font-style: italic; font-size: 1.55rem; letter-spacing: 0.06em; color: #6e645e; }
+.brand-sub { border-left: 1px solid var(--pv-border-dark); padding-left: 12px; font-family: Georgia, serif; font-size: 0.85rem; letter-spacing: 0.12em; color: var(--pv-gold); text-transform: uppercase; }
+.role-tag { background: var(--pv-gold-pale); border: 1px solid var(--pv-gold); color: var(--pv-charcoal); font-size: 0.72rem; padding: 2px 8px; border-radius: 3px; font-weight: 600; }
+
+.nav-modes { display: flex; flex-wrap: wrap; gap: 6px; background: var(--pv-gold-pale); padding: 4px; border: 1px solid var(--pv-border); border-radius: 4px; }
+.nav-btn { background: transparent; border: none; color: var(--pv-charcoal); padding: 8px 14px; cursor: pointer; font-family: var(--font-serif); font-size: 0.82rem; border-radius: 3px; transition: 0.2s; }
+.nav-btn:hover { color: var(--pv-gold); }
+.nav-btn.active { background: var(--pv-black); color: var(--pv-white); font-weight: 600; }
+
+.sync-bar {
+  background: #f4efe6; border-bottom: 1px solid var(--pv-border-dark); padding: 9px 24px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.82rem;
+}
+.status-badge { background: var(--pv-white); border: 1px solid var(--pv-gold); color: var(--pv-black); padding: 2px 10px; border-radius: 12px; font-weight: 600; font-size: 0.76rem; }
+
+.container { max-width: 1140px; margin: 24px auto; padding: 0 16px; }
+.view-panel { display: none; }
+.view-panel.active { display: block; }
+
+.hero-box { text-align: center; padding: 18px 16px; margin-bottom: 20px; background: linear-gradient(180deg, #fff 0%, #faf7f2 100%); border: 1px solid var(--pv-border); }
+.hero-sub { font-family: Georgia, serif; color: var(--pv-gold); letter-spacing: 0.18em; font-size: 0.8rem; text-transform: uppercase; }
+.hero-box h1 { font-family: var(--font-serif); font-weight: 600; font-size: 1.25rem; margin-top: 4px; }
+
+.card { background: var(--pv-white); border: 1px solid var(--pv-border); border-radius: 3px; padding: 22px 24px; margin-bottom: 18px; }
+.card-luxury { border-top: 3px solid var(--pv-gold); }
+.card-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--pv-border); }
+.card-title { font-family: var(--font-serif); font-size: 1.02rem; font-weight: 600; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 820px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 4px; color: var(--pv-charcoal); }
+.req { color: var(--pv-terracotta); font-size: 0.7rem; margin-left: 4px; }
+input[type="text"], input[type="number"], input[type="date"], select, textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--pv-border-dark); border-radius: 3px; font-size: 0.86rem; font-family: var(--font-sans); color: var(--pv-black); background: var(--pv-white);
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--pv-gold); box-shadow: 0 0 0 2px rgba(184,150,90,0.15); }
+textarea { resize: vertical; min-height: 68px; }
+
+.free-input { display: none; margin-top: 6px; background: #fffdf9 !important; border-color: var(--pv-gold) !important; }
+.free-input.show { display: block; }
+
+.handover-box { display: none; margin-top: 8px; padding: 10px 12px; background: #fdf5f3; border: 1px solid #e6bfb5; border-left: 3px solid var(--pv-terracotta); border-radius: 3px; }
+.handover-box.show { display: block; }
+.handover-box label { color: #9c3f23; font-size: 0.75rem; margin-bottom: 4px; }
+
+.store-note { display: none; margin-top: 6px; padding: 6px 10px; background: #eff7f2; border: 1px solid #bddbc8; border-radius: 3px; font-size: 0.75rem; color: #266343; }
+.store-note.show { display: block; }
+
+.order-type-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+.otype-btn { border: 1px solid var(--pv-border-dark); background: var(--pv-white); padding: 12px 14px; border-radius: 3px; cursor: pointer; text-align: left; transition: 0.2s; }
+.otype-btn.active { border: 2px solid var(--pv-gold); background: var(--pv-gold-pale); }
+.otype-btn strong { font-family: var(--font-serif); font-size: 0.95rem; display: block; }
+.otype-btn span { font-size: 0.76rem; color: var(--pv-muted); }
+
+.item-selector-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.item-card-btn { border: 1px solid var(--pv-border-dark); background: var(--pv-white); padding: 14px 10px; text-align: center; cursor: pointer; border-radius: 3px; transition: 0.2s; }
+.item-card-btn:hover { border-color: var(--pv-gold); background: var(--pv-gold-pale); }
+.item-card-btn.active { border: 2px solid var(--pv-gold); background: var(--pv-gold-pale); box-shadow: 0 2px 8px rgba(184,150,90,0.18); }
+.item-card-btn .title-jp { font-family: var(--font-serif); font-size: 0.98rem; font-weight: 600; display: block; }
+.item-card-btn .title-en { font-family: Georgia, serif; font-size: 0.75rem; color: var(--pv-gold); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.cat-sheet { display: none; border: 1px solid var(--pv-gold-light); background: var(--pv-gold-pale); padding: 18px; margin-bottom: 16px; border-radius: 3px; }
+.cat-sheet.active { display: block; }
+.cat-sheet-title { font-family: var(--font-serif); font-weight: 600; margin-bottom: 14px; font-size: 0.96rem; border-bottom: 1px solid var(--pv-gold-light); padding-bottom: 6px; }
+
+.custody-panel { margin-top: 14px; padding: 16px; background: #fffdf9; border: 1px solid var(--pv-gold-light); border-radius: 3px; }
+.photo-box { border: 1px dashed var(--pv-border-dark); background: #fff; height: 120px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 3px; margin-top: 6px; }
+.photo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 3px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+.btn-black { background: var(--pv-black); color: var(--pv-white); }
+.btn-black:hover { background: var(--pv-charcoal); }
+.btn-gold { background: var(--pv-gold); color: var(--pv-white); }
+.btn-gold:hover { background: #9e7f47; }
+.btn-outline { background: var(--pv-white); border-color: var(--pv-border-dark); color: var(--pv-charcoal); }
+.btn-outline:hover { border-color: var(--pv-gold); color: var(--pv-gold); }
+
+.pv-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.pv-table th, .pv-table td { border-bottom: 1px solid var(--pv-border); padding: 8px 12px; text-align: left; vertical-align: top; }
+.pv-table th { width: 32%; background: #faf9f6; color: var(--pv-muted); font-weight: 600; }
+
+.list-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.list-table th, .list-table td { border: 1px solid var(--pv-border); padding: 8px 10px; text-align: left; }
+.list-table th { background: #faf9f6; color: var(--pv-charcoal); font-weight: 600; white-space: nowrap; }
+
+.preview-box { border: 1px solid var(--pv-border-dark); background: #faf9f6; height: 240px; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 10px; overflow: hidden; border-radius: 3px; }
+.preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.quotation-sheet { background: var(--pv-white); border: 1px solid var(--pv-border-dark); padding: 36px; max-width: 900px; margin: 0 auto; box-shadow: 0 6px 24px rgba(0,0,0,0.05); }
+@media print {
+  header, .sync-bar, .no-print { display: none !important; }
+  body { background: #fff; padding: 0; }
+  .view-panel { display: none !important; }
+  #view-client { display: block !important; }
+  .quotation-sheet { box-shadow: none; border: none; padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-wrap">
+    <div class="brand-logo">Ponte Vecchio</div>
+    <div class="brand-sub">Su Misura — Boutique</div>
+    <span class="role-tag">店舗専用画面 v8</span>
+  </div>
+  <div class="nav-modes no-print">
+    <button type="button" class="nav-btn active" id="nav-shop" onclick="switchView('shop')">① 店頭カウンセリングカルテ</button>
+    <button type="button" class="nav-btn" id="nav-client" onclick="switchView('client')">② お客様 ご提案・お見積書</button>
+    <button type="button" class="nav-btn" id="nav-progress" onclick="switchView('progress')">③ お預り品・制作進行一覧</button>
+  </div>
+</header>
+
+<div class="sync-bar no-print">
+  <div>
+    案件管理番号：<strong id="disp-case-id">未採番（新規カルテ）</strong>
+    <span class="status-badge" id="disp-status">01_店頭カウンセリング中</span>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <button type="button" class="btn btn-gold" onclick="exportKarteForHQ()">📤 本社送付用カルテ保存 (.json)</button>
+    <label class="btn btn-black" style="margin:0;">
+      📥 本社からの見積・進行データ読込 (.json)
+      <input type="file" accept=".json" style="display:none;" id="shop-import-file" onchange="importFromHQ(event)">
+    </label>
+    <button type="button" class="btn btn-outline" onclick="newKarte()">＋ 新規作成</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== VIEW 1: 店頭カウンセリングカルテ ==================== -->
+  <div id="view-shop" class="view-panel active">
+    <div class="hero-box">
+      <div class="hero-sub">Ogni giorno più colorato</div>
+      <h1>Su Misura カウンセリングカルテ（店頭受付）</h1>
+      <p style="font-size:0.78rem; color:var(--pv-muted); margin-top:4px;">
+        ※お決まりでない項目は<strong>「未記入」</strong>、選択肢にないご希望は<strong>「その他（自由記載）」</strong>または各自由記載欄にご入力ください。（※地金・空枠の下取りは行っておりません）
+      </p>
+    </div>
+
+    <!-- 1. 基本情報・オーダー区分・地金 -->
+    <div class="card card-luxury">
+      <div class="card-header">
+        <div class="card-title">1. オーダー区分・お客様基本情報・ご希望地金</div>
+      </div>
+
+      <label style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:6px; color:var(--pv-charcoal);">▼ オーダー区分を選択してください</label>
+      <div class="order-type-bar">
+        <div class="otype-btn active" id="otype-full" onclick="selectOrderType('フルオーダー')">
+          <strong>✨ フルオーダー（新規デザイン制作）</strong>
+          <span>デザイン・原型から一作ずつお仕立て（本社ルース手配・お持ち込み石いずれも可）</span>
+        </div>
+        <div class="otype-btn" id="otype-reform" onclick="selectOrderType('リフォーム（セミオーダー）')">
+          <strong>💍 リフォーム（セミオーダー）</strong>
+          <span>お手持ちジュエリーのお石を活かして新しい枠・デザインへお仕立て直し（※空枠はご返却）</span>
+        </div>
+      </div>
+
+      <div class="grid-4">
+        <div class="form-group">
+          <label>受付日</label>
+          <input type="date" id="k-date" onchange="syncAll()">
+        </div>
+        <div class="form-group">
+          <label>お客様名<span class="req">必須</span></label>
+          <input type="text" id="k-name" value="白石 麻衣子" oninput="syncAll()">
+        </div>
+        <div class="form-group">
+          <label>受付店舗</label>
+          <select id="k-store" onchange="handleSelect(this); syncAll()">
+            <optgroup label="■ 関東（東京）">
+              <option value="銀座並木通り本店" selected>銀座並木通り本店</option>
+              <option value="伊勢丹新宿店">伊勢丹新宿店</option>
+              <option value="銀座三越店">銀座三越店</option>
+              <option value="松屋銀座店">松屋銀座店</option>
+              <option value="玉川高島屋S.C.店">玉川高島屋S.C.店</option>
+              <option value="西武池袋店">西武池袋店（2026/11/18 OPEN）</option>
+            </optgroup>
+            <optgroup label="■ 関東（横浜）">
+              <option value="そごう横浜店">そごう横浜店</option>
+            </optgroup>
+            <optgroup label="■ 中部（名古屋）">
+              <option value="名古屋三越栄店">名古屋三越栄店</option>
+              <option value="ジェイアール名古屋タカシマヤ店">ジェイアール名古屋タカシマヤ店</option>
+            </optgroup>
+            <optgroup label="■ 近畿（大阪）">
+              <option value="梅田阪急店">梅田阪急店</option>
+              <option value="大丸梅田店">大丸梅田店</option>
+              <option value="大阪高島屋店">大阪高島屋店（※2027年1月退店予定）</option>
+            </optgroup>
+            <optgroup label="■ ブライダル［直営店］">
+              <option value="ポンテヴェキオ ブライダル 銀座並木通り本店">ポンテヴェキオ ブライダル 銀座並木通り本店</option>
+            </optgroup>
+            <optgroup label="■ その他">
+              <option value="その他">その他（自由記載：外商・催事等）</option>
+            </optgroup>
+          </select>
+          <input type="text" id="k-store-free" class="free-input" placeholder="店舗名・催事名等を自由記載" oninput="syncAll()">
+
+          <div id="seibu-note" class="store-note">
+            ※2026年11月18日オープン新店：カルテ出力後、本社への着信確認を併せて実施してください。
+          </div>
+
+          <div id="osaka-handover-wrap" class="handover-box">
+            <label>⚠ 2027年1月退店に伴うお渡し・引継店舗指定</label>
+            <select id="k-handover" onchange="handleSelect(this); syncAll()">
+              <option value="2027年1月退店前にお渡し希望（納期要確認）">2027年1月退店前にお渡し希望（本社納期要確認）</option>
+              <option value="退店後お渡し：梅田阪急店へ引継">退店後お渡し：梅田阪急店へ引継</option>
+              <option value="退店後お渡し：大丸梅田店へ引継">退店後お渡し：大丸梅田店へ引継</option>
+              <option value="退店後お渡し：ご配送対応">退店後お渡し：ご配送対応</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="k-handover-free" class="free-input" placeholder="引継方法を自由記載" oninput="syncAll()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>担当スタッフ</label>
+          <input type="text" id="k-staff" value="高橋 恵美" oninput="syncAll()">
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label>ご予算目安（税込・円）</label>
+          <input type="number" id="k-budget" value="380000" step="10000" oninput="syncAll()">
+        </div>
+        <div class="form-group">
+          <label>ご希望の使用地金（Pt950 / K18各種 / K10各種 / コンビ）</label>
+          <select id="k-metal" onchange="handleSelect(this); syncAll()">
+            <option value="未記入">未記入（未定・デザイナーに相談して決めたい）</option>
+            <optgroup label="プラチナ">
+              <option value="Pt950" selected>Pt950（プラチナ950）</option>
+              <option value="Pt900">Pt900（プラチナ900）</option>
+            </optgroup>
+            <optgroup label="K18 ゴールド（18金）">
+              <option value="K18YG">K18YG（18金 イエローゴールド）</option>
+              <option value="K18PG">K18PG（18金 ピンクゴールド）</option>
+              <option value="K18WG">K18WG（18金 ホワイトゴールド）</option>
+            </optgroup>
+            <optgroup label="K10 ゴールド（10金）">
+              <option value="K10YG">K10YG（10金 イエローゴールド）</option>
+              <option value="K10PG">K10PG（10金 ピンクゴールド）</option>
+              <option value="K10WG">K10WG（10金 ホワイトゴールド）</option>
+            </optgroup>
+            <optgroup label="コンビネーション・その他">
+              <option value="Pt950×K18YG">Pt950 × K18YG コンビネーション</option>
+              <option value="Pt950×K18PG">Pt950 × K18PG コンビネーション</option>
+              <option value="K18YG×K18WG">K18YG × K18WG コンビネーション</option>
+              <option value="その他">その他（自由記載：メッキ指定や特注配合など）</option>
+            </optgroup>
+          </select>
+          <input type="text" id="k-metal-free" class="free-input" placeholder="ご希望の地金・コーティング条件を自由記載（例：K18WGロジウム無し 等）" oninput="syncAll()">
+        </div>
+        <div class="form-group">
+          <label>オーダーのきっかけ・ご用途・ご希望納期</label>
+          <select id="k-purpose" onchange="handleSelect(this); syncAll()">
+            <option value="未記入">未記入</option>
+            <option value="お手持ちジュエリー・ルースからのリメイク" selected>お手持ちジュエリー・ルースからのリメイク</option>
+            <option value="ご自身へのご褒美・デイリージュエリー">ご自身へのご褒美・デイリージュエリー</option>
+            <option value="記念日・お誕生日（ご希望納期あり）">記念日・お誕生日（ご希望納期あり）</option>
+            <option value="ブライダル・エンゲージメント">ブライダル・エンゲージメント</option>
+            <option value="その他">その他（自由記載）</option>
+          </select>
+          <input type="text" id="k-purpose-free" class="free-input" placeholder="ご用途やご希望のお渡し日を自由記載" oninput="syncAll()">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. お石＆お預り品管理 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">2. メインストーン（お石）のご要望 ＆ お客様お預り品情報</div>
+      </div>
+      <div class="grid-3">
+        <div class="form-group">
+          <label>メインの石区分</label>
+          <select id="s-source" onchange="handleSelect(this); syncAll()">
+            <option value="未記入">未記入（地金のみ、または相談中）</option>
+            <option value="お客様お持ち込み石（枠外し・ルース）" selected>お客様お持ち込み石（枠外し・ルース）</option>
+            <option value="本社にてルース新規手配希望">本社にてルース新規手配希望</option>
+            <option value="メイン石なし（パヴェ・地金デザイン）">メイン石なし（パヴェ・地金デザイン等）</option>
+            <option value="その他">その他（自由記載）</option>
+          </select>
+          <input type="text" id="s-source-free" class="free-input" placeholder="石の手配区分を自由記載" oninput="syncAll()">
+        </div>
+        <div class="form-group">
+          <label>宝石の種類・カラー</label>
+          <select id="s-type" onchange="handleSelect(this); syncAll()">
+            <option value="未記入">未記入</option>
+            <option value="ダイヤモンド（無色透明）">ダイヤモンド</option>
+            <option value="ブルーサファイア">ブルーサファイア</option>
+            <option value="ピンクサファイア" selected>ピンクサファイア</option>
+            <option value="ルビー">ルビー</option>
+            <option value="エメラルド">エメラルド</option>
+            <option value="タンザナイト / アクアマリン / トルマリン">タンザナイト / アクアマリン / トルマリン</option>
+            <option value="パール（真珠） / オパール">パール（真珠） / オパール</option>
+            <option value="その他">その他（自由記載：複数石・希少石など）</option>
+          </select>
+          <input type="text" id="s-type-free" class="free-input" placeholder="石種や色味を自由記載" oninput="syncAll()">
+        </div>
+        <div class="form-group">
+          <label>カット形状・サイズ（ct / mm）</label>
+          <select id="s-cut" onchange="handleSelect(this); syncAll()">
+            <option value="未記入">未記入（未計測・おまかせ）</option>
+            <option value="ラウンドカット">ラウンド（丸型）</option>
+            <option value="オーバルカット" selected>オーバル（楕円）</option>
+            <option value="ペアシェイプ（雫型）">ペアシェイプ（雫型）</option>
+            <option value="エメラルド / スクエア / クッションカット">エメラルド / スクエア / クッション</option>
+            <option value="ハートシェイプ / マーキス / カボション">ハート / マーキス / カボション</option>
+            <option value="その他">その他（自由記載）</option>
+          </select>
+          <input type="text" id="s-cut-free" class="free-input" placeholder="特殊なカット形状を自由記載" oninput="syncAll()">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>お石のサイズ実寸・状態・石の向きなど（自由記載）</label>
+        <input type="text" id="s-memo" value="約0.65ct（縦6.0×横4.5mm程度）。石の向き（縦置き・横置き）はデザインに合わせて提案希望。" placeholder="例：0.5ct（約5.0mm）、ルーペで端に微細な内包物あり、横置きセッティング希望 など" oninput="syncAll()">
+      </div>
+
+      <!-- お預り品管理ブロック -->
+      <div class="custody-panel" id="custody-panel">
+        <div style="font-family:var(--font-serif); font-weight:600; margin-bottom:10px; color:var(--pv-black);">
+          📦 お預り品検品・空枠ご返却確認（※下取りは行っておりません）
+        </div>
+        <div class="grid-4">
+          <div class="form-group">
+            <label>お預り状況</label>
+            <select id="c-custody-state" onchange="handleSelect(this); syncAll()">
+              <option value="お預り品なし（新規制作）">お預り品なし</option>
+              <option value="見積段階：店頭計測・撮影のみ（当日ご返却）" selected>見積段階：計測・撮影のみ（未預り）</option>
+              <option value="受注確定：店頭にて本預り済">受注確定：店頭にて本預り済</option>
+              <option value="本社アトリエへ貴重品便発送済">本社へ貴重品便発送済</option>
+              <option value="本社受入検品完了・金庫保管中">本社受入検品完了・保管中</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="c-custody-state-free" class="free-input" placeholder="お預り状況を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>預り証番号 / 送り状番号</label>
+            <input type="text" id="c-receipt-no" placeholder="例：預り証 No.2026-108" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>外した元の空枠の扱い（※下取り不可）</label>
+            <select id="c-old-frame" onchange="handleSelect(this); syncAll()">
+              <option value="該当なし（ルースお持ち込み等）">該当なし（ルース単体等）</option>
+              <option value="完成品納品時にお客様へご返却" selected>完成品納品時にお客様へご返却</option>
+              <option value="石外し後、先行してお客様へご返却">石外し後、先行してご返却</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="c-old-frame-free" class="free-input" placeholder="空枠や付属脇石の扱いを記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>お預り品写真登録（本社共有用）</label>
+            <input type="file" accept="image/*" onchange="loadStonePhoto(event)">
+            <div class="photo-box" id="stone-photo-box"><span style="font-size:0.74rem; color:var(--pv-muted);">お持ち込み品写真</span></div>
+          </div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer;">
+          <input type="checkbox" id="c-risk-agree" onchange="syncAll()">
+          お客様立会いのもとルーペ検品を実施し、石外し・加工時の特性リスクおよび「元の枠の下取りは行わずご返却となる旨」をご案内済み
+        </label>
+      </div>
+    </div>
+
+    <!-- 3. アイテム切替＆専用深掘り質問ページ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">3. アイテム選択 ＆ 専用デザイン条件シート</div>
+      </div>
+
+      <p style="font-size:0.8rem; font-weight:600; margin-bottom:8px;">▼ 制作アイテムをクリックすると専用質問ページが切り替わります</p>
+      <div class="item-selector-bar">
+        <div class="item-card-btn active" id="btn-cat-ring" onclick="selectCategory('ring')">
+          <span class="title-jp">💍 リング（指輪）</span>
+          <span class="title-en">Ring Design Sheet</span>
+        </div>
+        <div class="item-card-btn" id="btn-cat-necklace" onclick="selectCategory('necklace')">
+          <span class="title-jp">✨ ネックレス / ペンダント</span>
+          <span class="title-en">Necklace Design Sheet</span>
+        </div>
+        <div class="item-card-btn" id="btn-cat-pierce" onclick="selectCategory('pierce')">
+          <span class="title-jp">🌸 ピアス / イヤリング</span>
+          <span class="title-en">Earrings Design Sheet</span>
+        </div>
+      </div>
+
+      <!-- 共通デザイン方向性 -->
+      <div style="background:#faf9f6; border:1px solid var(--pv-border); padding:16px; margin-bottom:16px; border-radius:3px;">
+        <div style="font-family:var(--font-serif); font-weight:600; margin-bottom:12px;">【全アイテム共通】デザインの方向性・ディテール</div>
+        <div class="grid-4">
+          <div class="form-group">
+            <label>テイスト・世界観</label>
+            <select id="c-taste" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="ロマンティック・フラワー/ハート（PV王道）" selected>ロマンティック・大人可愛い（PV王道）</option>
+              <option value="エレガント・上品クラシカル">エレガント・上品クラシカル</option>
+              <option value="モダン・シンプル洗練">モダン・シンプル洗練</option>
+              <option value="アンティーク調・ミル打ち">アンティーク調・ミル打ち</option>
+              <option value="華やかラグジュアリー・ボリューム感">華やかラグジュアリー・ボリューム感</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="c-taste-free" class="free-input" placeholder="ご希望のテイスト・モチーフを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>主な着用シーン</label>
+            <select id="c-scene" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入</option>
+              <option value="毎日・デイリー普段使い重視" selected>毎日・デイリー普段使い重視</option>
+              <option value="お仕事・オフィス兼用">お仕事・オフィス兼用</option>
+              <option value="お出かけ・食事会・特別な日メイン">お出かけ・華やかな席メイン</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="c-scene-free" class="free-input" placeholder="着用シーンを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>脇石・メレ石のアレンジ</label>
+            <select id="c-melee" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="脇石なし（シンプル）">脇石なし（シンプル）</option>
+              <option value="周囲を取り巻く（ヘイロー / フラワー）" selected>周囲を取り巻く（ヘイロー / フラワー）</option>
+              <option value="両サイド・バチカンにメレダイヤを添える">サイドや一部にメレダイヤを添える</option>
+              <option value="パヴェセッティング（贅沢に敷き詰め）">パヴェセッティング（敷き詰め）</option>
+              <option value="マルチカラー色石を散りばめる（PV風）">マルチカラー色石を散りばめる（PV風）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="c-melee-free" class="free-input" placeholder="脇石の配置やカラー指定を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>石の留め方・表面仕上げ</label>
+            <select id="c-setting" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="繊細な爪留め・鏡面仕上げ" selected>繊細な爪留め（輝き重視・鏡面）</option>
+              <option value="フクリン留め（ベゼル・引っかかりなし）">フクリン留め（引っかかりなし）</option>
+              <option value="ミルグレイン（ミル打ち囲み）">ミルグレイン（ミル打ち）</option>
+              <option value="マット・ヘアライン（艶消し仕上げ）">マット・ヘアライン（艶消し）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="c-setting-free" class="free-input" placeholder="留め方やテクスチャを自由記載" oninput="syncAll()">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>共通デザインの自由記載欄（好きなモチーフ：星・蝶・リボン・植物、石の縦横の向き指定など）</label>
+          <input type="text" id="c-free-note" placeholder="例：オーバルの石を横向きに配置したい／甘すぎないフラワーモチーフにしたい 等" oninput="syncAll()">
+        </div>
+      </div>
+
+      <!-- 3-A: リング専用質問ページ -->
+      <div id="sheet-ring" class="cat-sheet active">
+        <div class="cat-sheet-title">💍 【リング専用】詳細ヒアリング項目</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>ご希望サイズ（号数・着用指）</label>
+            <select id="r-size" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（未計測・後ほど決定）</option>
+              <option value="ピンキー用（1〜6号）">ピンキー用（1〜6号）</option>
+              <option value="7〜9号（薬指など）">7〜9号</option>
+              <option value="10〜12号（薬指・中指）" selected>10〜12号（薬指・中指）</option>
+              <option value="13〜15号（中指・人差し指）">13〜15号（中指・人差し指）</option>
+              <option value="16号以上">16号以上</option>
+              <option value="その他">その他（正確な号数を自由記載）</option>
+            </select>
+            <input type="text" id="r-size-free" class="free-input" placeholder="例：右手薬指 11.5号（むくみ考慮）" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>アーム（腕）のライン形状</label>
+            <select id="r-line" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="ストレートライン（王道・重ね着け向き）">ストレートライン</option>
+              <option value="緩やかなS字ウェーブ（指が長く見える）" selected>緩やかなS字ウェーブ</option>
+              <option value="V字・U字ライン（すっきりシャープ）">V字・U字ライン</option>
+              <option value="二股・クロス・アシンメトリー">二股・クロス・アシンメトリー</option>
+              <option value="幅広透かし・レースデザイン">幅広透かし・レースデザイン</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="r-line-free" class="free-input" placeholder="アーム形状のご希望を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>アームの幅・ボリューム感</label>
+            <select id="r-width" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（石とのバランスおまかせ）</option>
+              <option value="華奢・細身（約1.5〜1.8mm）">華奢・細身（約1.5〜1.8mm）</option>
+              <option value="標準・程よいしっかり感（約2.0〜2.5mm）" selected>標準・程よい安心感（約2.0〜2.5mm）</option>
+              <option value="中太・存在感あり（約3.0〜4.5mm）">中太・存在感あり（約3.0〜4.5mm）</option>
+              <option value="幅広・ふっくらボリューム（5.0mm以上 / 月甲丸等）">幅広・ふっくらボリューム（5mm以上）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="r-width-free" class="free-input" placeholder="幅や厚み（裏抜き無し希望等）を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>石座の高さ・引っかかり配慮</label>
+            <select id="r-height" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="できるだけ低く・引っかかりにくい設計" selected>できるだけ低く・引っかかりにくい設計</option>
+              <option value="標準（光を取り込みつつ日常使いしやすい高さ）">標準（輝きと使いやすさの両立）</option>
+              <option value="高さあり（横顔・立体的シルエット重視）">高さあり（立体的シルエット・重ね着け空間重視）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="r-height-free" class="free-input" placeholder="石座の高さや側面デザインを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>お手持ちリングとの重ね着け</label>
+            <select id="r-stack" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入</option>
+              <option value="1本で主役として着用">1本で主役として着用</option>
+              <option value="ストレート/エタニティと重ね着けしたい" selected>お手持ちのストレート/エタニティと重ねたい</option>
+              <option value="V字・ウェーブリングと重ね着けしたい">お手持ちのV字・ウェーブと重ねたい</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="r-stack-free" class="free-input" placeholder="重ねるリングの特徴を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>内側刻印・シークレットストーン</label>
+            <select id="r-inside" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（後ほど決定・なし）</option>
+              <option value="記念日・イニシャル刻印希望">記念日・イニシャル等の刻印希望</option>
+              <option value="内側に誕生石（インサイドストーン）希望">内側に誕生石セッティング希望</option>
+              <option value="刻印＋インサイドストーン両方希望">刻印＋インサイドストーン両方希望</option>
+              <option value="その他">その他（刻印文字などを自由記載）</option>
+            </select>
+            <input type="text" id="r-inside-free" class="free-input" placeholder="刻印内容や誕生石の種類を自由記載" oninput="syncAll()">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>【リング自由記載欄】指の関節の特徴、手のひら側の絞り、着け心地などの細かなご要望</label>
+          <textarea id="r-memo" placeholder="例：関節が少ししっかりしているので回りにくい形状が良い／内甲丸で滑らかな指通りにしたい 等" oninput="syncAll()"></textarea>
+        </div>
+      </div>
+
+      <!-- 3-B: ネックレス専用質問ページ -->
+      <div id="sheet-necklace" class="cat-sheet">
+        <div class="cat-sheet-title">✨ 【ネックレス / ペンダント専用】詳細ヒアリング項目</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>ご希望のチェーン全長・仕様</label>
+            <select id="n-length" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="40cm（鎖骨ライン定番・37cm丸カン付）">40cm（定番・鎖骨ライン）</option>
+              <option value="45cm フリーアジャスター付（長さ自在）" selected>45cm スライドフリーアジャスター付</option>
+              <option value="50〜60cm（タートルネック等にも映えるミドル長）">50〜60cm（ミドルロング）</option>
+              <option value="70cm以上（ロングネックレス / Y字ラリエット）">70cm以上（ロング / Y字ラリエット）</option>
+              <option value="ペンダントトップのみ制作（お手持ちチェーン使用）">トップのみ制作（チェーンはお手持ち使用）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="n-length-free" class="free-input" placeholder="ご希望の長さやお手持ちチェーンのプレート幅を記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>チェーンの種類・太さ</label>
+            <select id="n-chain" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（トップに合わせておまかせ）</option>
+              <option value="カットアズキチェーン（繊細に煌めく定番）" selected>カットアズキチェーン（定番・キラキラ感）</option>
+              <option value="ベネチアンチェーン（滑らかで上品・高級感）">ベネチアンチェーン（滑らか・重厚感）</option>
+              <option value="太めしっかりチェーン（切れにくい安心感）">太めしっかりチェーン（強度・存在感重視）</option>
+              <option value="ダイヤ等を入れたステーションチェーン">ステーションチェーン（チェーン途中にも石配置）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="n-chain-free" class="free-input" placeholder="チェーン種類・線径のご希望を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>トップとチェーンの接続構造</label>
+            <select id="n-bail" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="両吊り一体型（胸元でトップが裏返りにくい・安定）" selected>両吊り一体型（センターで安定しやすい）</option>
+              <option value="バチカン通し型（揺れ感あり・チェーン抜差し可）">バチカン通し型（揺れ感・チェーン交換可）</option>
+              <option value="隠れバチカン（トップ裏にチェーンを通しスッキリ見せる）">隠れバチカン（モチーフのみが浮いて見える）</option>
+              <option value="開閉式クリッカーバチカン（パール連等にも装着可）">開閉式クリッカーバチカン</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="n-bail-free" class="free-input" placeholder="バチカン形状や内径指定を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>デコルテでのサイズ感・存在感</label>
+            <select id="n-volume" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入</option>
+              <option value="スキンジュエリー風の小ぶり・上品サイズ">小ぶり・さりげないサイズ感</option>
+              <option value="シャツの襟元から綺麗に映える程よいサイズ" selected>襟元から綺麗に映える程よいサイズ</option>
+              <option value="遠目からも華やかな大ぶり主役サイズ">遠目からも華やかな大ぶり主役サイズ</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="n-volume-free" class="free-input" placeholder="縦横ミリ数の目安などを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>留め具（引き輪・プレート）の使いやすさ</label>
+            <select id="n-clasp" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（標準仕様）</option>
+              <option value="標準引き輪＆プレート">標準引き輪＆プレート</option>
+              <option value="つまみやすい大きめ引き輪 / 楽らくフック希望" selected>つまみやすい大きめ引き輪・楽らく留め具希望</option>
+              <option value="マグネットクラスプ検討">マグネットクラスプ検討</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="n-clasp-free" class="free-input" placeholder="留め具のご要望やエンドチャーム希望を記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>トップ裏側の仕上げ・リバーシブル</label>
+            <select id="n-back" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（標準の光穴あり）</option>
+              <option value="ハートやフラワーの可愛い光穴（PVらしい裏張り）" selected>可愛いモチーフ光穴（ハート/フラワー窓）</option>
+              <option value="裏側も使える2WAYリバーシブル仕様">2WAYリバーシブル仕様希望</option>
+              <option value="肌当たり滑らかな裏張り仕上げ">肌当たり滑らかな裏張り重視</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="n-back-free" class="free-input" placeholder="裏側デザインのご希望を自由記載" oninput="syncAll()">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>【ネックレス自由記載欄】お手持ちネックレスとの重ね着けや、傾き・裏返り対策などのご要望</label>
+          <textarea id="n-memo" placeholder="例：手持ちの40cm一粒ダイヤと重ね着けしたい／トップが前に倒れない重心バランスにしてほしい 等" oninput="syncAll()"></textarea>
+        </div>
+      </div>
+
+      <!-- 3-C: ピアス・イヤリング専用質問ページ（※ダブルロックキャッチ完全除外・自由選択） -->
+      <div id="sheet-pierce" class="cat-sheet">
+        <div class="cat-sheet-title">🌸 【ピアス / イヤリング専用】詳細ヒアリング項目</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>制作点数・左右構成</label>
+            <select id="p-pair" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入</option>
+              <option value="両耳ペア（左右対称デザイン）" selected>両耳ペア（左右対称デザイン）</option>
+              <option value="両耳ペア（左右アシンメトリーデザイン）">両耳ペア（左右アシンメトリー）</option>
+              <option value="片耳シングル（1点のみ制作 / 紛失片方復元）">片耳シングル（1点のみ制作）</option>
+              <option value="イヤーカフとして制作">イヤーカフとして制作</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="p-pair-free" class="free-input" placeholder="点数や左右の組み合わせを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>金具タイプ（ピアス / イヤリング切替）</label>
+            <select id="p-fitting" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（相談して決定）</option>
+              <option value="【ピアス】直結スタッドポスト＆キャッチ" selected>【ピアス】直結ポスト＆キャッチ</option>
+              <option value="【ピアス】中折れフープ / 遮断機式ポスト">【ピアス】フープ / 遮断機式（キャッチ不要）</option>
+              <option value="【ピアス】アメリカンチェーン / フック式">【ピアス】アメリカンチェーン / フック式</option>
+              <option value="【イヤリング】ネジバネ式（微調整しやすい）">【イヤリング】ネジバネ式</option>
+              <option value="【イヤリング】クリップ式 / ピアリング風（痛くなりにくい）">【イヤリング】痛くなりにくいクリップ式</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="p-fitting-free" class="free-input" placeholder="金具の仕様を自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>耳元でのデザイン構造・揺れ感</label>
+            <select id="p-style" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（おまかせ）</option>
+              <option value="耳たぶにピタッと収まるスタッド型">耳たぶにピタッと収まるスタッド型</option>
+              <option value="耳たぶ下で上品に揺れるドロップ・スイング型" selected>上品に揺れるドロップ・スイング型</option>
+              <option value="取り外しチャーム付 2WAY仕様">チャーム取り外し可能な 2WAY仕様</option>
+              <option value="耳たぶに沿うライン・クライマー型">耳たぶに沿うライン型</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="p-style-free" class="free-input" placeholder="揺れ方や長さを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>ポスト位置・耳たぶ厚みの配慮</label>
+            <select id="p-post" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（標準設計）</option>
+              <option value="ポスト上付け（お辞儀せず正面を向きやすい）" selected>ポスト上付け（下を向かず正面を向きやすい）</option>
+              <option value="ポスト中央付け（ピアスホール位置カバー）">ポスト中央付け（ホールが下めの方など）</option>
+              <option value="長め・太めポスト指定（福耳・安定感重視）">長めポスト・軸太め指定（耳たぶ厚め配慮）</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="p-post-free" class="free-input" placeholder="ピアスホールの位置やポスト径（0.8mm/0.9mm等）を記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>重さ・着け心地の制限</label>
+            <select id="p-weight" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入</option>
+              <option value="軽さ最優先（長時間着けても疲れない軽量設計）" selected>軽さ最優先（耳への負担が少ない設計）</option>
+              <option value="標準的な重厚感">標準的な重厚感</option>
+              <option value="しっかりとした地金の高級感重視">しっかりとした地金の高級感重視</option>
+              <option value="その他">その他（自由記載）</option>
+            </select>
+            <input type="text" id="p-weight-free" class="free-input" placeholder="重さや肌トラブル配慮などを自由記載" oninput="syncAll()">
+          </div>
+          <div class="form-group">
+            <label>キャッチ仕様（自由に選択・記載可）</label>
+            <select id="p-catch" onchange="handleSelect(this); syncAll()">
+              <option value="未記入">未記入（デザインに合わせて相談）</option>
+              <option value="地金キャッチ（ベル型 / バタフライ標準）" selected>地金キャッチ（標準）</option>
+              <option value="ディスクキャッチ（大きめ円盤型・傾き防止）">ディスクキャッチ（大きめ安定型・傾き防止）</option>
+              <option value="シリコンキャッチ">シリコンキャッチ</option>
+              <option value="落ちにくいロック機能付キャッチ（クリスメラ等）">落ちにくいロック機能付キャッチ希望</option>
+              <option value="パールキャッチ・デザインバックキャッチ">パール等のバックキャッチデザイン希望</option>
+              <option value="キャッチ不要（フープ・フック・イヤリング等）">キャッチ不要（フープ・イヤリング等）</option>
+              <option value="その他">その他（ご希望キャッチを自由記載）</option>
+            </select>
+            <input type="text" id="p-catch-free" class="free-input" placeholder="ご希望のキャッチ種類・サイズ・素材を自由記載" oninput="syncAll()">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>【ピアス・イヤリング自由記載欄】髪の長さとのバランス、マスクや電話時の引っかかり配慮など</label>
+          <textarea id="p-memo" placeholder="例：ピアスホールが耳たぶの少し下側にあるため、金具が見えないようモチーフで隠したい 等" oninput="syncAll()"></textarea>
+        </div>
+      </div>
+
+      <!-- 全体総合自由記載欄 -->
+      <div style="margin-top:16px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:0.86rem; color:var(--pv-black);">4. 全体自由記載欄（お客様のストーリー・お好み・避けたいNG要素・店舗スタッフ申し送り）</label>
+          <textarea id="k-general-memo" style="min-height:90px;" placeholder="選択肢に収まらないお客様のお言葉、普段のファッション、他社やPV既存コレクションで気に入られた品番・イメージ、避けたいデザイン（例：尖った爪やハートが強すぎるものはNG等）を自由にご記入ください。" oninput="syncAll()">母から譲り受けたピンクサファイアを、普段のお出かけでも気負わず着けられる大人のフラワー調デザインに仕立て直したい。甘すぎず上品なポンテヴェキオらしい華やかさがご希望。</textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-gold" onclick="exportKarteForHQ()">📤 本社へ送るカルテデータを保存 (.json)</button>
+          <button type="button" class="btn btn-black" onclick="switchView('client')">「② お客様 ご提案・お見積書」を確認 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VIEW 2: お客様 ご提案・お見積書（原価完全非表示） ==================== -->
+  <div id="view-client" class="view-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; max-width:900px; margin:0 auto 12px; flex-wrap:wrap; gap:8px;" class="no-print">
+      <button type="button" class="btn btn-outline" onclick="switchView('shop')">← 店頭カルテへ戻る</button>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-gold" onclick="confirmOrderInShop()">✓ ご成約確定（受注ステータスへ更新）</button>
+        <button type="button" class="btn btn-black" onclick="window.print()">🖨️ ご提案・お見積書を印刷 / PDF保存</button>
+      </div>
+    </div>
+
+    <div class="quotation-sheet">
+      <div style="text-align:center; border-bottom:1px solid var(--pv-border); padding-bottom:18px; margin-bottom:24px;">
+        <div style="font-family:Georgia,serif; font-style:italic; font-size:1.85rem; letter-spacing:0.06em; color:#6e645e;">Ponte Vecchio</div>
+        <div style="font-family:Georgia,serif; font-size:0.8rem; color:var(--pv-gold); letter-spacing:0.2em; margin-top:4px;">SU MISURA PROPOSAL &amp; QUOTATION</div>
+        <h2 style="font-family:var(--font-serif); font-size:1.2rem; margin-top:10px; font-weight:600;">オーダーメイド ご提案書 兼 お見積書</h2>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px;">
+        <div>
+          <div style="font-size:1.1rem; font-family:var(--font-serif); border-bottom:1px solid var(--pv-black); padding-bottom:4px; display:inline-block; min-width:240px;">
+            <span id="c-out-name"></span> 様
+          </div>
+          <p style="font-size:0.8rem; color:var(--pv-muted); margin-top:8px;">いつもポンテヴェキオをご愛顧いただき誠にありがとうございます。<br>ご要望に基づき、世界にひとつだけの特別なジュエリーをご提案申し上げます。</p>
+        </div>
+        <div style="text-align:right; font-size:0.82rem; color:var(--pv-charcoal);">
+          <div>案件番号：<span id="c-out-caseid">未採番</span></div>
+          <div>発行日：<span id="c-out-date"></span></div>
+          <div>承り店舗：<span id="c-out-store"></span></div>
+          <div id="c-out-handover-row" style="display:none; color:#9c3f23; font-weight:600;">お渡し・引継：<span id="c-out-handover"></span></div>
+          <div>担当：<span id="c-out-staff"></span></div>
+          <div>お見積有効期限：発行日より<span id="c-out-valid">14</span>日間（地金相場連動）</div>
+          <div id="c-out-delivery-row" style="margin-top:2px; font-weight:600;">お渡し予定目安：<span id="c-out-delivery">受注確定後 約6〜8週間</span></div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:22px; align-items:stretch;">
+        <div class="preview-box" id="client-img-box">
+          <span style="color:var(--pv-muted); font-size:0.8rem;">本社よりデザイン画データ到着後に表示されます</span>
+        </div>
+        <div style="background:var(--pv-gold-pale); border:1px solid var(--pv-gold-light); padding:16px; border-radius:3px;">
+          <div style="font-family:var(--font-serif); font-weight:600; margin-bottom:8px; color:var(--pv-black);">アトリエからのデザインご提案</div>
+          <p id="c-out-comment" style="font-size:0.84rem; white-space:pre-wrap;">本社アトリエにてデザインおよびお見積りを作成中です。</p>
+        </div>
+      </div>
+
+      <h3 style="font-family:var(--font-serif); font-size:0.96rem; margin-bottom:8px;">■ ご指定仕様・デザイン詳細</h3>
+      <table class="pv-table" id="c-spec-table" style="margin-bottom:22px;"></table>
+
+      <h3 style="font-family:var(--font-serif); font-size:0.96rem; margin-bottom:8px;">■ お見積り金額</h3>
+      <table class="pv-table" id="c-price-table">
+        <tr><th>お見積り状況</th><td style="color:var(--pv-muted);">本社アトリエよりお見積データ（.json）を受信後、こちらにご提示金額が表示されます。</td></tr>
+      </table>
+      <p style="font-size:0.74rem; color:var(--pv-muted); margin-top:10px;">
+        ※誠に恐れ入りますが、お手持ち枠・地金の下取りは承っておりません。お石外し後の元の枠は完成品お渡し時（または先行）にご返却いたします。
+      </p>
+    </div>
+  </div>
+
+  <!-- ==================== VIEW 3: お預り品・制作進行一覧（見える化リスト） ==================== -->
+  <div id="view-progress" class="view-panel">
+    <div class="hero-box">
+      <div class="hero-sub">Order &amp; Custody Schedule</div>
+      <h1>お預り品 ＆ 制作進行スケジュール確認表（店舗・本社共有）</h1>
+      <p style="font-size:0.78rem; color:var(--pv-muted); margin-top:4px;">
+        本社から共有される進行管理ファイル（.json）を読み込むと、お預り品の到着状況や完成予定日・店舗着予定日を一覧で確認できます。
+      </p>
+    </div>
+
+    <div class="card card-luxury">
+      <div class="card-header">
+        <div class="card-title">店舗 進行中案件一覧</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline" onclick="saveCurrentToProgress()">＋ 現在表示中の案件を一覧に保存/更新</button>
+          <label class="btn btn-gold" style="margin:0;">
+            📥 本社共有の全体進行表(.json)を取込
+            <input type="file" accept=".json" style="display:none;" onchange="importProgressList(event)">
+          </label>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>案件番号</th>
+              <th>受付日</th>
+              <th>店舗（引継先）</th>
+              <th>お客様名 / 担当</th>
+              <th>区分 / アイテム</th>
+              <th>お預り品・預り証No.</th>
+              <th>制作ステータス</th>
+              <th>完成予定 / 店舗着予定</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="progress-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   Ponte Vecchio Su Misura 店舗システム v8
+   v7からの主な修正：
+   ・ステータス／お預り状況の文言を本社版と統一（旧v7値も自動変換、未知の値でも空欄にしない）
+   ・本社採番後に仮番号（TEMP-）の重複行を自動整理
+   ・本社進行表の取込は「置き換え」ではなく「統合」（未送付の店舗案件を消さない）
+   ・案件切替時に前案件の画像・コメント・金額が残らないよう初期化
+   ・お預り品写真の自動縮小と保存失敗時の正しい通知（容量対策）
+   ・日付を日本時間で取得
+   ========================================================= */
+let currentOrderType = 'フルオーダー';
+let currentCategory = 'ring';
+let stonePhotoData = '';
+
+const DEFAULT_PROPOSAL = {
+  caseId: '',
+  status: '01_店頭カウンセリング中',
+  comment: '',
+  designImg: '',
+  validDays: 14,
+  deliverySchedule: '受注確定後 約6〜8週間',
+  shopCompleteDate: '',
+  clientRows: [],
+  subTotal: 0,
+  tax: 0,
+  taxRate: null,
+  totalTaxIncluded: 0
+};
+let hqProposal = JSON.parse(JSON.stringify(DEFAULT_PROPOSAL));
+
+const SHOP_PROGRESS_KEY = 'pv_sumisura_shop_progress_v8';
+const LEGACY_PROGRESS_KEY = 'pv_sumisura_shop_progress_v7';
+const PACKET_CASE = 'PV_SUMISURA_CASE_V8';
+const PACKET_LIST = 'PV_SUMISURA_PROGRESS_LIST_V8';
+const STATUS_CONFIRMED = '03_ご成約済・お預り品発送準備';
+
+/* 旧バージョンの値 → v8統一値 */
+const STATUS_ALIASES = { '03_ご成約済・お預り品発送待': STATUS_CONFIRMED };
+function normStatus(s) { return STATUS_ALIASES[s] || s; }
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function todayLocal() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function safeImg(s) { return (typeof s === 'string' && /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(s)) ? s : ''; }
+function isListPacket(d) { return !!(d && typeof d.packetType === 'string' && /PROGRESS_LIST/.test(d.packetType)); }
+
+/* 選択肢にない値が来ても空欄にしない */
+function setFieldValue(el, val) {
+  if (el.tagName !== 'SELECT') { el.value = val; return; }
+  if (val !== '' && !Array.from(el.options).some(o => o.value === val)) {
+    const o = document.createElement('option');
+    o.value = val; o.textContent = val + '（本社設定値）';
+    el.appendChild(o);
+  }
+  el.value = val;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/* 写真を長辺1600px・JPEGに縮小（スマホ写真でも数百KB程度に） */
+function readImageResized(file, cb) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1600;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => alert('写真を読み込めませんでした（対応形式：JPEG / PNG / GIF / WebP）。');
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function switchView(viewName) {
+  document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + viewName).classList.add('active');
+  document.getElementById('nav-' + viewName).classList.add('active');
+  if (viewName === 'progress') renderProgressTable();
+  syncAll();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectOrderType(type) {
+  currentOrderType = type;
+  document.getElementById('otype-full').classList.toggle('active', type === 'フルオーダー');
+  document.getElementById('otype-reform').classList.toggle('active', type !== 'フルオーダー');
+  syncAll();
+}
+
+function selectCategory(cat) {
+  currentCategory = cat;
+  ['ring', 'necklace', 'pierce'].forEach(c => {
+    document.getElementById('btn-cat-' + c).classList.toggle('active', c === cat);
+    document.getElementById('sheet-' + c).classList.toggle('active', c === cat);
+  });
+  syncAll();
+}
+
+function handleSelect(selEl, noFocus) {
+  const freeInput = document.getElementById(selEl.id + '-free');
+  if (freeInput) {
+    if (selEl.value === 'その他') {
+      freeInput.classList.add('show');
+      if (!noFocus) freeInput.focus();
+    } else {
+      freeInput.classList.remove('show');
+    }
+  }
+  if (selEl.id === 'k-store') {
+    const osakaWrap = document.getElementById('osaka-handover-wrap');
+    const seibuNote = document.getElementById('seibu-note');
+    if (osakaWrap) osakaWrap.classList.toggle('show', selEl.value === '大阪高島屋店');
+    if (seibuNote) seibuNote.classList.toggle('show', selEl.value === '西武池袋店');
+  }
+}
+
+function valOf(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  if (el.tagName === 'SELECT' && el.value === 'その他') {
+    const free = document.getElementById(id + '-free');
+    return free && free.value.trim() ? '【自由記載】' + free.value.trim() : 'その他（詳細未入力）';
+  }
+  return el.value.trim();
+}
+
+function cleanVal(id) {
+  const v = valOf(id);
+  return (v === '未記入' || v === '') ? null : v;
+}
+
+function renderStonePhoto() {
+  document.getElementById('stone-photo-box').innerHTML = stonePhotoData
+    ? `<img src="${stonePhotoData}" alt="Stone">`
+    : '<span style="font-size:0.74rem; color:var(--pv-muted);">お持ち込み品写真</span>';
+}
+
+function loadStonePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  readImageResized(file, data => { stonePhotoData = data; renderStonePhoto(); });
+}
+
+function collectSpecs() {
+  const catNames = { ring: 'リング（指輪）', necklace: 'ネックレス / ペンダント', pierce: 'ピアス / イヤリング' };
+  const specs = [
+    ['オーダー区分', currentOrderType],
+    ['制作アイテム', catNames[currentCategory]],
+    ['ご希望地金', valOf('k-metal')],
+    ['オーダーのきっかけ・ご希望納期', valOf('k-purpose')]
+  ];
+
+  if (document.getElementById('k-store').value === '大阪高島屋店') {
+    specs.push(['お渡し・引継店舗（2027年1月退店対応）', valOf('k-handover')]);
+  }
+
+  specs.push(
+    ['メイン石区分', valOf('s-source')],
+    ['宝石種・カット', [cleanVal('s-type'), cleanVal('s-cut')].filter(Boolean).join(' / ') || '未記入'],
+    ['お石詳細メモ', cleanVal('s-memo') || '未記入'],
+    ['お預り状況・空枠ご返却', `${valOf('c-custody-state')}${cleanVal('c-receipt-no') ? '（' + cleanVal('c-receipt-no') + '）' : ''} ／ 空枠：${valOf('c-old-frame')}`],
+    ['テイスト・シーン', [cleanVal('c-taste'), cleanVal('c-scene')].filter(Boolean).join(' ／ ') || '未記入'],
+    ['脇石・留め方', [cleanVal('c-melee'), cleanVal('c-setting')].filter(Boolean).join(' ／ ') || '未記入']
+  );
+  if (cleanVal('c-free-note')) specs.push(['共通デザイン自由記載', cleanVal('c-free-note')]);
+
+  if (currentCategory === 'ring') {
+    specs.push(
+      ['リングサイズ', valOf('r-size')],
+      ['アーム形状・幅', [cleanVal('r-line'), cleanVal('r-width')].filter(Boolean).join(' ／ ') || '未記入'],
+      ['石座高さ・重ね着け', [cleanVal('r-height'), cleanVal('r-stack')].filter(Boolean).join(' ／ ') || '未記入'],
+      ['内側刻印・誕生石', valOf('r-inside')]
+    );
+    if (cleanVal('r-memo')) specs.push(['リング自由記載メモ', cleanVal('r-memo')]);
+  } else if (currentCategory === 'necklace') {
+    specs.push(
+      ['チェーン全長・種類', [cleanVal('n-length'), cleanVal('n-chain')].filter(Boolean).join(' ／ ') || '未記入'],
+      ['トップ構造・サイズ感', [cleanVal('n-bail'), cleanVal('n-volume')].filter(Boolean).join(' ／ ') || '未記入'],
+      ['留め具・裏側仕上げ', [cleanVal('n-clasp'), cleanVal('n-back')].filter(Boolean).join(' ／ ') || '未記入']
+    );
+    if (cleanVal('n-memo')) specs.push(['ネックレス自由記載メモ', cleanVal('n-memo')]);
+  } else if (currentCategory === 'pierce') {
+    specs.push(
+      ['点数・金具仕様', [cleanVal('p-pair'), cleanVal('p-fitting')].filter(Boolean).join(' ／ ') || '未記入'],
+      ['構造・ポスト配慮', [cleanVal('p-style'), cleanVal('p-post')].filter(Boolean).join(' ／ ') || '未記入'],
+      ['重さ配慮・キャッチ仕様', [cleanVal('p-weight'), cleanVal('p-catch')].filter(Boolean).join(' ／ ') || '未記入']
+    );
+    if (cleanVal('p-memo')) specs.push(['ピアス/イヤリング自由記載メモ', cleanVal('p-memo')]);
+  }
+
+  if (cleanVal('k-general-memo')) {
+    specs.push(['全体ご要望・自由記載', cleanVal('k-general-memo')]);
+  }
+  return specs;
+}
+
+function syncAll() {
+  const specs = collectSpecs();
+  const isOsaka = document.getElementById('k-store').value === '大阪高島屋店';
+  const storeDisplay = valOf('k-store').replace('【自由記載】', '');
+  const isTemp = !hqProposal.caseId || hqProposal.caseId.startsWith('TEMP-');
+
+  document.getElementById('disp-case-id').textContent = hqProposal.caseId
+    ? hqProposal.caseId + (isTemp ? '（仮番号・本社採番前）' : '')
+    : '未採番（新規カルテ）';
+  document.getElementById('disp-status').textContent = hqProposal.status || '01_店頭カウンセリング中';
+
+  document.getElementById('c-out-caseid').textContent = isTemp ? '本社採番前' : hqProposal.caseId;
+  document.getElementById('c-out-name').textContent = valOf('k-name');
+  document.getElementById('c-out-store').textContent = storeDisplay;
+  document.getElementById('c-out-staff').textContent = valOf('k-staff');
+  document.getElementById('c-out-date').textContent = valOf('k-date') || new Date().toLocaleDateString('ja-JP');
+  document.getElementById('c-out-valid').textContent = hqProposal.validDays || 14;
+  document.getElementById('c-out-delivery').textContent = hqProposal.deliverySchedule || '受注確定後 約6〜8週間';
+
+  // 案件ごとに必ず書き換え（前案件の内容を残さない）
+  document.getElementById('c-out-comment').textContent = hqProposal.comment || '本社アトリエにてデザインおよびお見積りを作成中です。';
+  const img = safeImg(hqProposal.designImg);
+  document.getElementById('client-img-box').innerHTML = img
+    ? `<img src="${img}" alt="Design">`
+    : '<span style="color:var(--pv-muted); font-size:0.8rem;">本社よりデザイン画データ到着後に表示されます</span>';
+
+  const handoverRow = document.getElementById('c-out-handover-row');
+  if (isOsaka) {
+    handoverRow.style.display = 'block';
+    document.getElementById('c-out-handover').textContent = valOf('k-handover').replace('【自由記載】', '');
+  } else {
+    handoverRow.style.display = 'none';
+  }
+
+  let clientSpecHtml = '';
+  specs.forEach(([k, v]) => {
+    const disp = v === '未記入' ? '<span style="color:#888;">未記入（最適バランスにてご提案）</span>' : escHtml(v.replace(/【自由記載】/g, ''));
+    clientSpecHtml += `<tr><th>${escHtml(k)}</th><td>${disp}</td></tr>`;
+  });
+  document.getElementById('c-spec-table').innerHTML = clientSpecHtml;
+
+  const total = Number(hqProposal.totalTaxIncluded) || 0;
+  if (total > 0) {
+    let rowsHtml = '';
+    (hqProposal.clientRows || []).forEach(r => {
+      const price = Number(r.price) || 0;
+      const st = price < 0 ? ' style="color:#b53838;"' : '';
+      const dispP = (price < 0 ? '▲¥' : '¥') + Math.abs(price).toLocaleString();
+      rowsHtml += `<tr><th>${escHtml(r.label)}</th><td${st}>${dispP}</td></tr>`;
+    });
+    const taxLabel = (hqProposal.taxRate !== null && hqProposal.taxRate !== undefined) ? `消費税（${hqProposal.taxRate}%）` : '消費税';
+    rowsHtml += `
+      <tr><th>小計（税抜）</th><td>¥${(Number(hqProposal.subTotal) || 0).toLocaleString()}</td></tr>
+      <tr><th>${taxLabel}</th><td>¥${(Number(hqProposal.tax) || 0).toLocaleString()}</td></tr>
+      <tr style="font-size:1.08rem; font-weight:700; background:#faf7f2;"><th>お見積り合計金額（税込）</th><td>¥${total.toLocaleString()}</td></tr>
+    `;
+    document.getElementById('c-price-table').innerHTML = rowsHtml;
+  } else {
+    document.getElementById('c-price-table').innerHTML =
+      '<tr><th>お見積り状況</th><td style="color:var(--pv-muted);">本社アトリエよりお見積データ（.json）を受信後、こちらにご提示金額が表示されます。</td></tr>';
+  }
+}
+
+/* ---------- 店舗⇔本社 ファイル連携 ---------- */
+const FORM_IDS = [
+  'k-date','k-name','k-store','k-store-free','k-handover','k-handover-free','k-staff','k-budget',
+  'k-metal','k-metal-free','k-purpose','k-purpose-free',
+  's-source','s-source-free','s-type','s-type-free','s-cut','s-cut-free','s-memo',
+  'c-custody-state','c-custody-state-free','c-receipt-no','c-old-frame','c-old-frame-free',
+  'c-taste','c-taste-free','c-scene','c-scene-free','c-melee','c-melee-free','c-setting','c-setting-free','c-free-note',
+  'r-size','r-size-free','r-line','r-line-free','r-width','r-width-free','r-height','r-height-free','r-stack','r-stack-free','r-inside','r-inside-free','r-memo',
+  'n-length','n-length-free','n-chain','n-chain-free','n-bail','n-bail-free','n-volume','n-volume-free','n-clasp','n-clasp-free','n-back','n-back-free','n-memo',
+  'p-pair','p-pair-free','p-fitting','p-fitting-free','p-style','p-style-free','p-post','p-post-free','p-weight','p-weight-free','p-catch','p-catch-free','p-memo',
+  'k-general-memo'
+];
+
+function buildCasePacket() {
+  const fields = {};
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) fields[id] = el.value;
+  });
+  return {
+    packetType: PACKET_CASE,
+    exportedAt: new Date().toISOString(),
+    caseId: hqProposal.caseId || '',
+    status: hqProposal.status || '01_店頭カウンセリング中',
+    orderType: currentOrderType,
+    category: currentCategory,
+    riskAgreed: document.getElementById('c-risk-agree').checked,
+    fields: fields,
+    stonePhotoData: stonePhotoData,
+    hqProposal: hqProposal
+  };
+}
+
+function exportKarteForHQ() {
+  if (!valOf('k-name')) { alert('お客様名をご入力ください。'); return; }
+  saveCurrentToProgress(true);           // 先に仮番号を確定させてから出力
+  const packet = buildCasePacket();
+  const blob = new Blob([JSON.stringify(packet, null, 2)], { type: 'application/json' });
+  const safeName = valOf('k-name').replace(/\s+/g, '');
+  downloadBlob(blob, `PVカルテ_${packet.caseId || '新規'}_${safeName}様.json`);
+}
+
+function importFromHQ(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    let data;
+    try { data = JSON.parse(ev.target.result); }
+    catch (err) { alert('ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。'); return; }
+    if (isListPacket(data)) {
+      const n = mergeProgressRecords(data.records || []);
+      switchView('progress');
+      alert(`本社共有の制作進行一覧を取り込みました（${n}件を反映）。`);
+      return;
+    }
+    applyCasePacket(data);
+    if (data.shopTempId) removeProgressRecord(data.shopTempId); // 仮番号の重複行を整理
+    saveCurrentToProgress(true);
+    switchView('client');
+    alert('本社からのご提案・お見積データを読み込みました！');
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function applyCasePacket(data) {
+  if (data.orderType) selectOrderType(data.orderType);
+  if (data.category) selectCategory(data.category);
+  if (data.fields) {
+    FORM_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data.fields[id] !== undefined) {
+        setFieldValue(el, data.fields[id]);
+        if (el.tagName === 'SELECT') handleSelect(el, true);
+      }
+    });
+  }
+  document.getElementById('c-risk-agree').checked = Boolean(data.riskAgreed);
+  stonePhotoData = safeImg(data.stonePhotoData);
+  renderStonePhoto();
+
+  // 前案件の提案内容を引き継がないよう初期値から作り直す
+  hqProposal = Object.assign(JSON.parse(JSON.stringify(DEFAULT_PROPOSAL)), data.hqProposal || {});
+  if (data.caseId) hqProposal.caseId = data.caseId;
+  if (data.status) hqProposal.status = data.status;
+  hqProposal.status = normStatus(hqProposal.status);
+  hqProposal.designImg = safeImg(hqProposal.designImg);
+  syncAll();
+}
+
+function confirmOrderInShop() {
+  if (!(Number(hqProposal.totalTaxIncluded) > 0)) {
+    if (!confirm('本社からのお見積がまだ届いていません。このままご成約確定にしますか？')) return;
+  }
+  if (!document.getElementById('c-risk-agree').checked) {
+    alert('ご成約前に「ルーペ検品・加工リスク・空枠返却のご案内済み」チェックを入れてください（店頭カルテ 2. の下部）。');
+    switchView('shop');
+    return;
+  }
+  hqProposal.status = STATUS_CONFIRMED;
+  syncAll();
+  saveCurrentToProgress(true);
+  alert(`ステータスを「${STATUS_CONFIRMED}」に更新しました。\nお預り証の発行後、「📤 本社送付用カルテ保存」から確定データを本社へ送付してください。`);
+}
+
+function newKarte() {
+  if (!confirm('入力をリセットして新規のお客様カルテを作成しますか？\n（一覧に保存していない入力内容は消えます）')) return;
+  location.reload();
+}
+
+/* ---------- 制作進行管理表（店舗側） ---------- */
+function getProgressList() {
+  try {
+    let raw = localStorage.getItem(SHOP_PROGRESS_KEY);
+    if (raw === null) raw = localStorage.getItem(LEGACY_PROGRESS_KEY); // v7データを引き継ぐ
+    const l = JSON.parse(raw || '[]');
+    return Array.isArray(l) ? l : [];
+  } catch (e) { return []; }
+}
+
+/* 保存：容量超過時は古い案件の画像から外して再試行 */
+function writeProgressList(list, keepImagesCaseId) {
+  const tryWrite = l => { try { localStorage.setItem(SHOP_PROGRESS_KEY, JSON.stringify(l)); return true; } catch (e) { return false; } };
+  if (tryWrite(list)) return { ok: true, stripped: 0 };
+  let stripped = 0;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const p = list[i].packet;
+    if (list[i].caseId === keepImagesCaseId || !p) continue;
+    if (p.stonePhotoData || (p.hqProposal && p.hqProposal.designImg)) {
+      p.stonePhotoData = '';
+      if (p.hqProposal) p.hqProposal.designImg = '';
+      list[i].imagesRemoved = true;
+      stripped++;
+      if (tryWrite(list)) return { ok: true, stripped };
+    }
+  }
+  const cur = list.find(r => r.caseId === keepImagesCaseId);
+  if (cur && cur.packet) {
+    cur.packet.stonePhotoData = '';
+    if (cur.packet.hqProposal) cur.packet.hqProposal.designImg = '';
+    cur.imagesRemoved = true;
+    if (tryWrite(list)) return { ok: true, stripped: stripped + 1, currentStripped: true };
+  }
+  return { ok: false, stripped };
+}
+
+function removeProgressRecord(caseId) {
+  const list = getProgressList().filter(r => r.caseId !== caseId);
+  writeProgressList(list, '');
+}
+
+/* 本社進行表の取込：同じ案件Noは本社の内容で更新、店舗だけにある案件は残す */
+function mergeProgressRecords(recs) {
+  const list = getProgressList();
+  const tempIdsDone = new Set();
+  let n = 0;
+  recs.forEach(r => {
+    if (!r || !r.caseId) return;
+    const c = JSON.parse(JSON.stringify(r));
+    delete c.hqInternal;
+    c.status = normStatus(c.status);
+    if (c.packet && c.packet.shopTempId) tempIdsDone.add(c.packet.shopTempId);
+    const idx = list.findIndex(x => x.caseId === c.caseId);
+    if (idx >= 0) list[idx] = c; else list.push(c);
+    n++;
+  });
+  const merged = list.filter(x => !tempIdsDone.has(x.caseId));
+  const res = writeProgressList(merged, '');
+  renderProgressTable();
+  if (!res.ok) alert('⚠ ブラウザの保存容量が不足し、進行一覧を保存できませんでした。');
+  return n;
+}
+
+function saveCurrentToProgress(silent) {
+  if (!valOf('k-name')) { if (!silent) alert('お客様名をご入力ください。'); return false; }
+  const list = getProgressList();
+  const cid = hqProposal.caseId || ('TEMP-' + Date.now().toString().slice(-8));
+  hqProposal.caseId = cid;
+  const catLabel = { ring: 'リング', necklace: 'ネックレス', pierce: 'ピアス/イヤリング' }[currentCategory];
+  const storeStr = valOf('k-store').replace('【自由記載】', '') +
+    (document.getElementById('k-store').value === '大阪高島屋店' ? `（${valOf('k-handover')}）` : '');
+
+  const rec = {
+    caseId: cid,
+    date: valOf('k-date'),
+    store: storeStr,
+    client: valOf('k-name'),
+    staff: valOf('k-staff'),
+    item: `${currentOrderType} / ${catLabel}`,
+    custody: `${valOf('c-custody-state')} ${valOf('c-receipt-no')}`,
+    status: hqProposal.status,
+    schedule: hqProposal.shopCompleteDate || hqProposal.deliverySchedule || '未定',
+    updatedAt: new Date().toISOString(),
+    packet: buildCasePacket()
+  };
+
+  const idx = list.findIndex(r => r.caseId === cid);
+  if (idx >= 0) list[idx] = rec; else list.unshift(rec);
+  const res = writeProgressList(list, cid);
+  renderProgressTable();
+  syncAll();
+  if (!res.ok) {
+    alert('⚠ ブラウザの保存容量が不足し、進行一覧に保存できませんでした。\n本社送付用カルテ（.json）は別途保存されますので、そちらを保管してください。');
+    return false;
+  }
+  let note = '';
+  if (res.currentStripped) note = '\n※容量の都合で、この案件の写真は一覧に保存されていません（本社送付ファイルには含まれます）。';
+  else if (res.stripped) note = `\n※容量確保のため、古い案件${res.stripped}件の写真を一覧から外しました。`;
+  if (!silent) alert('進行一覧表に保存しました。' + note);
+  else if (note) alert(note.trim());
+  return true;
+}
+
+function renderProgressTable() {
+  const list = getProgressList();
+  const tbody = document.getElementById('progress-tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--pv-muted); padding:20px;">登録された案件はまだありません。</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((r, i) => `
+    <tr>
+      <td><strong>${escHtml(r.caseId)}</strong>${String(r.caseId).startsWith('TEMP-') ? '<br><span style="color:var(--pv-muted); font-size:0.7rem;">仮番号（本社採番待ち）</span>' : ''}</td>
+      <td>${escHtml(r.date)}</td>
+      <td>${escHtml(r.store)}</td>
+      <td>${escHtml(r.client)} 様<br><span style="color:var(--pv-muted); font-size:0.74rem;">担当：${escHtml(r.staff)}</span></td>
+      <td>${escHtml(r.item)}</td>
+      <td>${escHtml(r.custody)}</td>
+      <td><span class="status-badge">${escHtml(normStatus(r.status))}</span></td>
+      <td>${escHtml(r.schedule)}</td>
+      <td style="white-space:nowrap;">
+        <button type="button" class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="openFromProgress(${i})">開く</button>
+        <button type="button" class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteFromProgress(${i})">削除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openFromProgress(idx) {
+  const list = getProgressList();
+  if (list[idx] && list[idx].packet) {
+    applyCasePacket(list[idx].packet);
+    switchView('shop');
+  }
+}
+
+function deleteFromProgress(idx) {
+  const list = getProgressList();
+  if (!list[idx]) return;
+  if (!confirm(`「${list[idx].caseId} ${list[idx].client} 様」を一覧から削除しますか？`)) return;
+  list.splice(idx, 1);
+  writeProgressList(list, '');
+  renderProgressTable();
+}
+
+function importProgressList(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const recs = data.records || (Array.isArray(data) ? data : null);
+      if (!recs) { alert('これは進行表ファイルではありません。本社回答（PV本社回答_…json）は上部の「📥 本社からの見積・進行データ読込」から読み込んでください。'); return; }
+      const n = mergeProgressRecords(recs);
+      alert(`本社共有の制作進行表を取り込みました（${n}件を反映・店舗側のみの案件は保持）。`);
+    } catch (err) {
+      alert('読込エラー：正しい進行表JSONファイルを選択してください。');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('k-date').value = todayLocal();
+  handleSelect(document.getElementById('k-store'), true);
+  syncAll();
+});
+</script>
+</body>
+</html>
